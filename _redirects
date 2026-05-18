@@ -1,0 +1,5 @@
+# Netlify redirect rules — https://docs.netlify.com/routing/redirects/
+#
+# Serve the dashboard at the root URL.
+# Status 200 = rewrite (URL bar stays as "/"), not a 302 redirect.
+/    /capital_flows_dashboard.html    200
