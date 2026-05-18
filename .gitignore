@@ -1,0 +1,56 @@
+# Capital Flows Research primer PDFs — copyrighted, paid subscription content
+# Do NOT commit these to a public repo
+*.pdf
+
+# Development artifacts — patch scripts are created/deleted during edit sessions
+_patch*.py
+_temp*.py
+
+# Claude Code agent state (session-local, not project content)
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Environment / secrets (none currently, but for future-proofing)
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+
+# Temp files
+*.tmp
+*.bak
+temp/
+tmp/
+
+# Node (in case any tooling gets added later)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs (none currently, just placeholder)
+dist/
+build/
+.cache/

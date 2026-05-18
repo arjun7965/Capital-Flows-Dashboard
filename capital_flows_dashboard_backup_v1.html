@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capital Flows Research — Macro Dashboard</title>
+<style>
+  :root {
+    --color-bg: #f8f7f4;
+    --color-surface: #ffffff;
+    --color-border: rgba(0,0,0,0.1);
+    --color-border-mid: rgba(0,0,0,0.18);
+    --color-text: #1a1a18;
+    --color-text-muted: #6b6b67;
+    --color-text-hint: #9a9a96;
+    --color-purple-50: #EEEDFE; --color-purple-200: #AFA9EC; --color-purple-600: #534AB7; --color-purple-800: #3C3489;
+    --color-teal-50: #E1F5EE; --color-teal-200: #5DCAA5; --color-teal-600: #0F6E56; --color-teal-800: #085041;
+    --color-coral-50: #FAECE7; --color-coral-200: #F0997B; --color-coral-600: #993C1D; --color-coral-800: #712B13;
+    --color-blue-50: #E6F1FB; --color-blue-200: #85B7EB; --color-blue-600: #185FA5; --color-blue-800: #0C447C;
+    --color-amber-50: #FAEEDA; --color-amber-200: #EF9F27; --color-amber-600: #854F0B; --color-amber-800: #633806;
+    --color-red-50: #FCEBEB; --color-red-200: #F09595; --color-red-600: #A32D2D; --color-red-800: #791F1F;
+    --color-green-50: #EAF3DE; --color-green-200: #97C459; --color-green-600: #3B6D11; --color-green-800: #27500A;
+    --color-gray-50: #F1EFE8; --color-gray-100: #D3D1C7; --color-gray-600: #5F5E5A; --color-gray-800: #444441;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #1a1a18;
+      --color-surface: #242422;
+      --color-border: rgba(255,255,255,0.1);
+      --color-border-mid: rgba(255,255,255,0.18);
+      --color-text: #f0ede6;
+      --color-text-muted: #a0a09a;
+      --color-text-hint: #6b6b67;
+      --color-purple-50: #26215C; --color-purple-200: #534AB7; --color-purple-600: #AFA9EC; --color-purple-800: #CECBF6;
+      --color-teal-50: #04342C; --color-teal-200: #0F6E56; --color-teal-600: #5DCAA5; --color-teal-800: #9FE1CB;
+      --color-coral-50: #4A1B0C; --color-coral-200: #993C1D; --color-coral-600: #F0997B; --color-coral-800: #F5C4B3;
+      --color-blue-50: #042C53; --color-blue-200: #185FA5; --color-blue-600: #85B7EB; --color-blue-800: #B5D4F4;
+      --color-amber-50: #412402; --color-amber-200: #854F0B; --color-amber-600: #EF9F27; --color-amber-800: #FAC775;
+      --color-red-50: #501313; --color-red-200: #A32D2D; --color-red-600: #F09595; --color-red-800: #F7C1C1;
+      --color-green-50: #173404; --color-green-200: #3B6D11; --color-green-600: #97C459; --color-green-800: #C0DD97;
+      --color-gray-50: #2C2C2A; --color-gray-100: #444441; --color-gray-600: #B4B2A9; --color-gray-800: #D3D1C7;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  header {
+    background: var(--color-surface);
+    border-bottom: 0.5px solid var(--color-border);
+    padding: 1.25rem 2rem;
+  }
+  header h1 { font-size: 18px; font-weight: 500; }
+  header p { font-size: 13px; color: var(--color-text-muted); margin-top: 2px; }
+  nav {
+    background: var(--color-surface);
+    border-bottom: 0.5px solid var(--color-border);
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  nav button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav button:hover { color: var(--color-text); }
+  nav button.active { color: var(--color-text); border-bottom-color: var(--color-purple-600); font-weight: 500; }
+  main { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-title { font-size: 16px; font-weight: 500; margin-bottom: 0.25rem; }
+  .section-subtitle { font-size: 13px; color: var(--color-text-muted); margin-bottom: 1.5rem; }
+  .card {
+    background: var(--color-surface);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card-title { font-size: 13px; font-weight: 500; margin-bottom: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  @media (max-width: 700px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    main { padding: 1rem; }
+  }
+  .metric-card {
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+  }
+  .metric-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 500; }
+  .metric-note { font-size: 11px; color: var(--color-text-hint); margin-top: 4px; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+  }
+  .badge-purple { background: var(--color-purple-50); color: var(--color-purple-600); }
+  .badge-teal { background: var(--color-teal-50); color: var(--color-teal-600); }
+  .badge-coral { background: var(--color-coral-50); color: var(--color-coral-600); }
+  .badge-blue { background: var(--color-blue-50); color: var(--color-blue-600); }
+  .badge-amber { background: var(--color-amber-50); color: var(--color-amber-600); }
+  .badge-red { background: var(--color-red-50); color: var(--color-red-600); }
+  .badge-green { background: var(--color-green-50); color: var(--color-green-600); }
+  .badge-gray { background: var(--color-gray-50); color: var(--color-gray-600); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; font-weight: 500; color: var(--color-text-muted); border-bottom: 0.5px solid var(--color-border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 8px 10px; border-bottom: 0.5px solid var(--color-border); color: var(--color-text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .regime-quad {
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    min-height: 140px;
+  }
+  .regime-quad h3 { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .regime-quad p { font-size: 12px; line-height: 1.5; }
+  .regime-quad ul { list-style: none; font-size: 12px; }
+  .regime-quad ul li { padding: 1px 0; }
+  .regime-quad ul li::before { content: "→ "; }
+  .axis-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-hint);
+    text-align: center;
+    padding: 4px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--color-border);
+    font-size: 13px;
+  }
+  .flow-row:last-child { border-bottom: none; }
+  .flow-arrow { color: var(--color-text-hint); font-size: 16px; }
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--color-border);
+    font-size: 13px;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--color-purple-50);
+    color: var(--color-purple-600);
+    font-size: 11px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .check-body { flex: 1; }
+  .check-title { font-weight: 500; margin-bottom: 2px; }
+  .check-desc { font-size: 12px; color: var(--color-text-muted); }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  hr.divider { border: none; border-top: 0.5px solid var(--color-border); margin: 1.25rem 0; }
+  .signal-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--color-gray-100);
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .signal-fill { height: 100%; border-radius: 3px; }
+  .yield-cell {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+  }
+  .yield-cell h4 { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Capital Flows Research — Macro Dashboard</h1>
+  <p>Synthesized from 8 primers covering cross-border flows, interest rates, FX, and market dynamics</p>
+</header>
+
+<nav id="nav">
+  <button class="active" onclick="showSection('regime', this)">Macro Regime</button>
+  <button onclick="showSection('liquidity', this)">Global Liquidity</button>
+  <button onclick="showSection('rates', this)">Interest Rates</button>
+  <button onclick="showSection('fx', this)">FX &amp; Inflation</button>
+  <button onclick="showSection('equities', this)">Equities &amp; Credit</button>
+  <button onclick="showSection('bitcoin', this)">Bitcoin</button>
+  <button onclick="showSection('consumer', this)">Consumer</button>
+  <button onclick="showSection('thesis', this)">Thesis Checklist</button>
+</nav>
+
+<main>
+
+  <!-- SECTION 1: MACRO REGIME -->
+  <div id="regime" class="section active">
+    <p class="section-title">Macro Regime Matrix</p>
+    <p class="section-subtitle">Identify which quadrant you're in — growth vs. inflation determines asset allocation and sector rotation</p>
+
+    <!-- 4-Quadrant Grid -->
+    <div class="card">
+      <p class="card-title">The 4-Quadrant Regime Framework</p>
+      <div style="display: grid; grid-template-columns: 60px 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 6px; align-items: center;">
+        <!-- Top-left empty corner -->
+        <div></div>
+        <div class="axis-label">↑ Growth Rising</div>
+        <div class="axis-label">↓ Growth Falling</div>
+
+        <!-- Row 1: Inflation Rising -->
+        <div class="axis-label" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 100%;">Inflation ↑</div>
+        <div class="regime-quad" style="background: var(--color-amber-50);">
+          <h3 style="color: var(--color-amber-600);">Overheating / Late Cycle</h3>
+          <ul style="color: var(--color-amber-800);">
+            <li>Fed hiking — rates rising fast</li>
+            <li>Yield curve flattening / inverting</li>
+            <li>USD strengthening</li>
+            <li>Commodities peak, then roll</li>
+          </ul>
+          <div class="pill-row" style="margin-top: 8px;">
+            <span class="badge badge-green">↑ Energy</span>
+            <span class="badge badge-green">↑ Materials</span>
+            <span class="badge badge-green">↑ TIPS</span>
+            <span class="badge badge-red">↓ Growth stocks</span>
+          </div>
+        </div>
+        <div class="regime-quad" style="background: var(--color-red-50);">
+          <h3 style="color: var(--color-red-600);">Stagflation</h3>
+          <ul style="color: var(--color-red-800);">
+            <li>Worst regime for equities</li>
+            <li>Supply-shock driven inflation</li>
+            <li>Consumer squeeze (high prices, falling wages real terms)</li>
+            <li>EM hard currency stress</li>
+          </ul>
+          <div class="pill-row" style="margin-top: 8px;">
+            <span class="badge badge-green">↑ Commodities</span>
+            <span class="badge badge-green">↑ Gold</span>
+            <span class="badge badge-red">↓ Equities</span>
+            <span class="badge badge-red">↓ Credit</span>
+          </div>
+        </div>
+
+        <!-- Row 2: Inflation Falling -->
+        <div class="axis-label" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 100%;">Inflation ↓</div>
+        <div class="regime-quad" style="background: var(--color-teal-50);">
+          <h3 style="color: var(--color-teal-600);">Goldilocks / Expansion</h3>
+          <ul style="color: var(--color-teal-800);">
+            <li>Best regime for risk assets</li>
+            <li>Fed on hold or cutting gently</li>
+            <li>Yield curve steep and rising</li>
+            <li>Capital flows into equities / EM</li>
+          </ul>
+          <div class="pill-row" style="margin-top: 8px;">
+            <span class="badge badge-green">↑ Tech / Growth</span>
+            <span class="badge badge-green">↑ Financials</span>
+            <span class="badge badge-green">↑ EM equities</span>
+            <span class="badge badge-green">↑ High yield</span>
+          </div>
+        </div>
+        <div class="regime-quad" style="background: var(--color-purple-50);">
+          <h3 style="color: var(--color-purple-600);">Recession / Deflation</h3>
+          <ul style="color: var(--color-purple-800);">
+            <li>Fed cutting aggressively</li>
+            <li>Bull steepening yield curve</li>
+            <li>USD safe-haven bid</li>
+            <li>Risk-off: credit spreads blow out</li>
+          </ul>
+          <div class="pill-row" style="margin-top: 8px;">
+            <span class="badge badge-green">↑ Long Treasuries</span>
+            <span class="badge badge-green">↑ Utilities</span>
+            <span class="badge badge-green">↑ Healthcare</span>
+            <span class="badge badge-red">↓ Cyclicals</span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">
+        <span><span class="badge badge-green">↑ green</span> = outperform / buy in this regime</span>
+        <span><span class="badge badge-red">↓ red</span> = underperform / avoid in this regime</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Regime Identification Signals -->
+      <div class="card">
+        <p class="card-title">Regime Identification Signals</p>
+        <table>
+          <thead><tr><th>Indicator</th><th>Expansion</th><th>Recession</th></tr></thead>
+          <tbody>
+            <tr><td>ISM Manufacturing</td><td><span class="badge badge-teal">&gt;50 expanding</span></td><td><span class="badge badge-red">&lt;50 contracting</span></td></tr>
+            <tr><td>Yield curve (2s10s)</td><td><span class="badge badge-teal">Positive / steepening</span></td><td><span class="badge badge-red">Inverted / negative</span></td></tr>
+            <tr><td>Credit spreads (IG/HY)</td><td><span class="badge badge-teal">Tightening</span></td><td><span class="badge badge-red">Widening rapidly</span></td></tr>
+            <tr><td>Leading indicators (LEI)</td><td><span class="badge badge-teal">Rising MoM</span></td><td><span class="badge badge-red">Falling 3+ months</span></td></tr>
+            <tr><td>CPI / PCE trend</td><td><span class="badge badge-amber">Key for quadrant</span></td><td><span class="badge badge-amber">Rising = overheat risk</span></td></tr>
+            <tr><td>Initial jobless claims</td><td><span class="badge badge-teal">Below 250k</span></td><td><span class="badge badge-red">Rising trend</span></td></tr>
+            <tr><td>Real retail sales</td><td><span class="badge badge-teal">Growing</span></td><td><span class="badge badge-red">Contracting</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sector Rotation by Regime -->
+      <div class="card">
+        <p class="card-title">Sector Rotation by Regime</p>
+        <table>
+          <thead><tr><th>Regime</th><th>Leaders</th><th>Laggards</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-teal">Goldilocks</span></td>
+              <td style="font-size: 12px;">Tech, Discretionary, Financials, EM</td>
+              <td style="font-size: 12px;">Utilities, Staples</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-amber">Overheating</span></td>
+              <td style="font-size: 12px;">Energy, Materials, Industrials, TIPS</td>
+              <td style="font-size: 12px;">Long-duration growth, REITs</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">Stagflation</span></td>
+              <td style="font-size: 12px;">Commodities, Gold, Real assets</td>
+              <td style="font-size: 12px;">Equities broadly, Credit</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-purple">Recession</span></td>
+              <td style="font-size: 12px;">Long Treasuries, Utilities, Healthcare, Gold</td>
+              <td style="font-size: 12px;">Cyclicals, Banks, HY bonds</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Policy Transmission Chain -->
+    <div class="card">
+      <p class="card-title">Policy Transmission Chain</p>
+      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px;">
+        <div style="background: var(--color-purple-50); color: var(--color-purple-800); padding: 8px 12px; border-radius: var(--radius-md); font-weight: 500;">Fed Policy Rate</div>
+        <span style="color: var(--color-text-hint);">→</span>
+        <div style="background: var(--color-blue-50); color: var(--color-blue-800); padding: 8px 12px; border-radius: var(--radius-md); font-weight: 500;">Financial Conditions</div>
+        <span style="color: var(--color-text-hint);">→</span>
+        <div style="background: var(--color-teal-50); color: var(--color-teal-800); padding: 8px 12px; border-radius: var(--radius-md); font-weight: 500;">Credit / Lending</div>
+        <span style="color: var(--color-text-hint);">→</span>
+        <div style="background: var(--color-amber-50); color: var(--color-amber-800); padding: 8px 12px; border-radius: var(--radius-md); font-weight: 500;">Consumption &amp; Investment</div>
+        <span style="color: var(--color-text-hint);">→</span>
+        <div style="background: var(--color-coral-50); color: var(--color-coral-800); padding: 8px 12px; border-radius: var(--radius-md); font-weight: 500;">Growth &amp; Inflation</div>
+        <span style="color: var(--color-text-hint);">→</span>
+        <div style="background: var(--color-gray-50); color: var(--color-gray-600); padding: 8px 12px; border-radius: var(--radius-md); font-weight: 500;">Asset Prices</div>
+      </div>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-top: 10px;">Lag times: monetary policy → real economy = 12–18 months; financial conditions → markets = near-immediate</p>
+    </div>
+
+    <!-- Key Macro Variables -->
+    <div class="card">
+      <p class="card-title">Key Variables to Monitor</p>
+      <div class="grid-4">
+        <div class="metric-card">
+          <p class="metric-label">Growth proxy</p>
+          <p style="font-size: 14px; font-weight: 500;">ISM + LEI</p>
+          <p class="metric-note">Leading, not lagging</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Inflation proxy</p>
+          <p style="font-size: 14px; font-weight: 500;">CPI + PCE core</p>
+          <p class="metric-note">Watch trend, not level</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Liquidity proxy</p>
+          <p style="font-size: 14px; font-weight: 500;">Fed BS + RRP</p>
+          <p class="metric-note">Net liquidity = BS − RRP − TGA</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Risk sentiment</p>
+          <p style="font-size: 14px; font-weight: 500;">HY spreads + VIX</p>
+          <p class="metric-note">Credit leads equity</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Regime Transition Signals -->
+    <div class="card">
+      <p class="card-title">How to Spot a Regime Transition</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Regimes don't flip overnight — they rotate through early warning signals. Catching the transition early is where the biggest macro trades live.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Transition</th>
+            <th>Early Warning Signals</th>
+            <th>Confirming Data</th>
+            <th>First Movers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500;">Goldilocks → Overheat</td>
+            <td style="font-size: 12px;">PMI above 55 for 3+ months; wage growth accelerating; capacity utilization rising; CPI breakevens rising</td>
+            <td style="font-size: 12px;">Core CPI surprise to upside; FOMC dot plot shifts hawkish; 2yr yield rising faster than 10yr</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Energy</span> <span class="badge badge-teal">↑ Materials</span> <span class="badge badge-red">↓ Long-duration growth</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Overheat → Stagflation</td>
+            <td style="font-size: 12px;">PMI new orders rolling over while prices stay high; consumer confidence dropping; yield curve inverting; credit spreads widening</td>
+            <td style="font-size: 12px;">GDP growth misses while CPI stays elevated; Fed still hiking into weakening economy</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Defensives</span> <span class="badge badge-teal">↑ TIPS</span> <span class="badge badge-red">↓ Cyclicals</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Stagflation → Recession</td>
+            <td style="font-size: 12px;">Unemployment claims rising; ISM falling below 50; housing starts collapsing; credit card delinquencies rising</td>
+            <td style="font-size: 12px;">Two consecutive GDP quarters negative; CPI finally rolling; Fed pauses or pivots language emerges</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Long bonds</span> <span class="badge badge-teal">↑ USD safe haven</span> <span class="badge badge-red">↓ HY credit</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Recession → Goldilocks</td>
+            <td style="font-size: 12px;">ISM new orders bottoming; credit spreads tightening; yield curve dis-inverting (bull steepening); earnings revisions stabilizing</td>
+            <td style="font-size: 12px;">First Fed cut; unemployment peaks; PMI inflects above 50; housing shows green shoots</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Cyclicals</span> <span class="badge badge-teal">↑ Small-cap</span> <span class="badge badge-teal">↑ EM equities</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 11px; color: var(--color-text-hint); margin-top: 8px;">Key rule: Markets lead fundamentals by 6–9 months. Look for the first mover assets listed above to confirm the rotation before the data makes it obvious.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 2: GLOBAL LIQUIDITY -->
+  <div id="liquidity" class="section">
+    <p class="section-title">Global Liquidity &amp; Capital Flows</p>
+    <p class="section-subtitle">Central bank balance sheets, cross-border flows, and the dollar cycle drive all risk assets</p>
+
+    <!-- Global Liquidity Framework -->
+    <div class="card">
+      <p class="card-title">Global Liquidity Framework</p>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 10px 14px;">
+          <p style="font-weight: 500; font-size: 13px; color: var(--color-purple-800);">Layer 1 — Central Bank Liquidity (the source)</p>
+          <p style="font-size: 12px; color: var(--color-purple-600); margin-top: 2px;">Fed + ECB + BOJ + PBOC balance sheets. When they expand (QE), global liquidity rises. Contraction (QT) drains risk appetite across all markets.</p>
+          <p style="font-size: 12px; color: var(--color-purple-600); margin-top: 4px;"><strong>Net Fed Liquidity</strong> = Fed Balance Sheet − Reverse Repo (RRP) − Treasury General Account (TGA)</p>
+        </div>
+        <div style="text-align: center; font-size: 16px; color: var(--color-text-hint);">↓</div>
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 10px 14px;">
+          <p style="font-weight: 500; font-size: 13px; color: var(--color-blue-800);">Layer 2 — Cross-Border Capital Flows</p>
+          <p style="font-size: 12px; color: var(--color-blue-600); margin-top: 2px;">Money flows across borders seeking yield, safety, or growth. Driven by: interest rate differentials, risk appetite, currency expectations, geopolitical risk. Key flows: TIC data (US), BOP (Balance of Payments) reports.</p>
+        </div>
+        <div style="text-align: center; font-size: 16px; color: var(--color-text-hint);">↓</div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 10px 14px;">
+          <p style="font-weight: 500; font-size: 13px; color: var(--color-teal-800);">Layer 3 — FX &amp; Currency Dynamics</p>
+          <p style="font-size: 12px; color: var(--color-teal-600); margin-top: 2px;">Capital flows price currencies. Strong USD = tighter global liquidity (EM debt stress, commodity headwinds). Weak USD = looser global liquidity (EM rally, commodities bid, gold up).</p>
+        </div>
+        <div style="text-align: center; font-size: 16px; color: var(--color-text-hint);">↓</div>
+        <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 10px 14px;">
+          <p style="font-weight: 500; font-size: 13px; color: var(--color-amber-800);">Layer 4 — Asset Prices</p>
+          <p style="font-size: 12px; color: var(--color-amber-600); margin-top: 2px;">Equities, bonds, commodities, crypto — all ultimately priced by the amount of money flowing through the system and the risk appetite of that capital.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- USD Recycling Loop -->
+    <div class="card">
+      <p class="card-title">The USD Recycling Loop — Why the US Can Run Permanent Deficits</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">The US current account deficit is not a bug — it's the mechanism that supplies the world with USD and suppresses US long-term rates. Understanding this loop is core to the Capital Flows framework.</p>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem;">
+        <div class="flow-row">
+          <div style="background: var(--color-blue-50); color: var(--color-blue-700); padding: 6px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 160px; text-align: center;">① US Imports</div>
+          <div style="flex: 1; font-size: 12px; color: var(--color-text-muted);">US consumers buy goods from the world (China, Germany, Japan, oil exporters). USD flows out into foreign hands — the current account deficit.</div>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-teal-50); color: var(--color-teal-700); padding: 6px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 160px; text-align: center;">② World Earns USD</div>
+          <div style="flex: 1; font-size: 12px; color: var(--color-text-muted);">Trading partners accumulate large USD reserves. They need safe, liquid USD assets to park those reserves — domestic options are limited.</div>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-amber-50); color: var(--color-amber-700); padding: 6px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 160px; text-align: center;">③ Recycled into UST</div>
+          <div style="flex: 1; font-size: 12px; color: var(--color-text-muted);">Foreign central banks and sovereign wealth funds buy US Treasuries. China, Japan, and petrostates are the largest holders — structural, price-insensitive buyers.</div>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-purple-50); color: var(--color-purple-700); padding: 6px 12px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 160px; text-align: center;">④ Long Rates Suppressed</div>
+          <div style="flex: 1; font-size: 12px; color: var(--color-text-muted);">Structural foreign demand keeps US 10yr yields lower than fiscal deficits alone would imply. This is why the US has been able to run large deficits without the bond vigilantes winning.</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 10px 12px;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-red-800); margin-bottom: 4px;">When the Loop Breaks</p>
+          <p style="font-size: 12px; color: var(--color-red-700);">If foreign buyers reduce UST purchases (China diversifying, petrostates defending currency), structural rate suppression disappears → term premium rises → long yields climb without Fed action. Watch: TIC data monthly, foreign central bank reserve composition.</p>
+        </div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 10px 12px;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 4px;">Trading Implication</p>
+          <p style="font-size: 12px; color: var(--color-teal-700);">Strong global trade → more USD recycled → UST demand supported → long yields capped. Trade war / de-globalization → fewer USD recycled → term premium rises → bear steepener risk. Trade policy is bond market policy.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dollar Cycle -->
+      <div class="card">
+        <p class="card-title">Dollar Cycle Impact</p>
+        <table>
+          <thead><tr><th>USD Trend</th><th>Impact</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-red">Strong USD ↑</span></td>
+              <td style="font-size: 12px;">EM capital outflows, USD-denominated debt stress, commodities headwind, tighter global liquidity, DXY up</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-teal">Weak USD ↓</span></td>
+              <td style="font-size: 12px;">EM relief rally, commodity tailwind, gold bid, global liquidity expansion, risk-on globally</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-amber">USD Volatility</span></td>
+              <td style="font-size: 12px;">Carry trade unwinds, cross-border flow disruption, broad risk-off sentiment</td>
+            </tr>
+          </tbody>
+        </table>
+        <hr class="divider">
+        <p style="font-size: 12px; color: var(--color-text-muted);">Key driver: <strong>Real rate differentials</strong> between the US and the rest of the world. Higher US real rates attract capital → stronger USD.</p>
+      </div>
+
+      <!-- DM vs EM Capital Flows -->
+      <div class="card">
+        <p class="card-title">DM vs. EM Capital Flow Dynamics</p>
+        <table>
+          <thead><tr><th>Condition</th><th>DM Flows</th><th>EM Flows</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-size: 12px;">Risk-on + weak USD</td>
+              <td style="font-size: 12px;"><span class="badge badge-teal">Inflows</span></td>
+              <td style="font-size: 12px;"><span class="badge badge-teal">Strong inflows</span></td>
+            </tr>
+            <tr>
+              <td style="font-size: 12px;">Risk-off + strong USD</td>
+              <td style="font-size: 12px;"><span class="badge badge-blue">Safe haven bid</span></td>
+              <td style="font-size: 12px;"><span class="badge badge-red">Outflows / stress</span></td>
+            </tr>
+            <tr>
+              <td style="font-size: 12px;">Fed hiking cycle</td>
+              <td style="font-size: 12px;"><span class="badge badge-amber">Mixed</span></td>
+              <td style="font-size: 12px;"><span class="badge badge-red">Capital flight risk</span></td>
+            </tr>
+            <tr>
+              <td style="font-size: 12px;">Fed easing cycle</td>
+              <td style="font-size: 12px;"><span class="badge badge-teal">Equities rally</span></td>
+              <td style="font-size: 12px;"><span class="badge badge-teal">Carry trade returns</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Capital Flow Hierarchy -->
+    <div class="card">
+      <p class="card-title">Capital Flow Hierarchy — What Moves First</p>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div class="flow-row">
+          <div style="width: 28px; height: 28px; background: var(--color-purple-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-purple-600); flex-shrink: 0;">1</div>
+          <div style="flex: 1;"><strong style="font-size: 13px;">Central bank policy decisions</strong> <span style="font-size: 12px; color: var(--color-text-muted);">— Rate changes, QE/QT announcements, forward guidance</span></div>
+          <span class="badge badge-purple">Immediate</span>
+        </div>
+        <div class="flow-row">
+          <div style="width: 28px; height: 28px; background: var(--color-blue-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-blue-600); flex-shrink: 0;">2</div>
+          <div style="flex: 1;"><strong style="font-size: 13px;">Government bond markets (short end)</strong> <span style="font-size: 12px; color: var(--color-text-muted);">— T-bills, 2yr repricing instantly</span></div>
+          <span class="badge badge-blue">Hours</span>
+        </div>
+        <div class="flow-row">
+          <div style="width: 28px; height: 28px; background: var(--color-teal-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-teal-600); flex-shrink: 0;">3</div>
+          <div style="flex: 1;"><strong style="font-size: 13px;">FX markets &amp; cross-border capital</strong> <span style="font-size: 12px; color: var(--color-text-muted);">— Currency rebalancing, carry trade adjustments</span></div>
+          <span class="badge badge-teal">Days</span>
+        </div>
+        <div class="flow-row">
+          <div style="width: 28px; height: 28px; background: var(--color-amber-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-amber-600); flex-shrink: 0;">4</div>
+          <div style="flex: 1;"><strong style="font-size: 13px;">Equity markets &amp; risk assets</strong> <span style="font-size: 12px; color: var(--color-text-muted);">— Multiples reprice as discount rates change</span></div>
+          <span class="badge badge-amber">Weeks</span>
+        </div>
+        <div class="flow-row">
+          <div style="width: 28px; height: 28px; background: var(--color-coral-50); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-coral-600); flex-shrink: 0;">5</div>
+          <div style="flex: 1;"><strong style="font-size: 13px;">Real economy (credit, capex, employment)</strong> <span style="font-size: 12px; color: var(--color-text-muted);">— The lagged effect on growth and inflation</span></div>
+          <span class="badge badge-coral">12–18 months</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Flow Monitors -->
+    <div class="card">
+      <p class="card-title">Key Data to Monitor</p>
+      <div class="grid-3">
+        <div class="metric-card">
+          <p class="metric-label">Net Fed Liquidity</p>
+          <p style="font-size: 13px; font-weight: 500;">BS − RRP − TGA</p>
+          <p class="metric-note">Rising = bullish risk assets</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">TIC Data</p>
+          <p style="font-size: 13px; font-weight: 500;">Foreign UST buying</p>
+          <p class="metric-note">Monthly, 6-week lag — key for rate pressure</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">DXY / USDCNY</p>
+          <p style="font-size: 13px; font-weight: 500;">Dollar strength index</p>
+          <p class="metric-note">Leading indicator for EM stress</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Current Account</p>
+          <p style="font-size: 13px; font-weight: 500;">Trade + income flows</p>
+          <p class="metric-note">Structural USD demand driver</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">EM FX Reserves</p>
+          <p style="font-size: 13px; font-weight: 500;">Central bank holdings</p>
+          <p class="metric-note">Drawdowns signal stress / intervention</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Global M2</p>
+          <p style="font-size: 13px; font-weight: 500;">USD + EUR + JPY + CNY</p>
+          <p class="metric-note">Strong correlation with BTC, gold, equities</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: INTEREST RATES -->
+  <div id="rates" class="section">
+    <p class="section-title">US Interest Rates &amp; Yield Curve</p>
+    <p class="section-subtitle">Fed policy cycle, yield curve regimes, and tactical duration positioning</p>
+
+    <!-- Yield Curve Regime Matrix -->
+    <div class="card">
+      <p class="card-title">Yield Curve Regime Matrix</p>
+      <div class="grid-2">
+        <div class="yield-cell" style="background: var(--color-teal-50);">
+          <h4 style="color: var(--color-teal-800);">Bull Steepening</h4>
+          <p style="font-size: 12px; color: var(--color-teal-600); margin-bottom: 6px;">Short rates fall faster than long rates. Fed cutting in recession. Early recovery signal.</p>
+          <table style="font-size: 11px; width: 100%;">
+            <tr><td style="color: var(--color-teal-700); padding: 2px 0;"><strong>2yr:</strong></td><td>Falling fast</td></tr>
+            <tr><td style="color: var(--color-teal-700); padding: 2px 0;"><strong>10yr:</strong></td><td>Falling slowly / rising</td></tr>
+            <tr><td style="color: var(--color-teal-700); padding: 2px 0;"><strong>Trade:</strong></td><td>Long duration, gold, equities improving</td></tr>
+            <tr><td style="color: var(--color-teal-700); padding: 2px 0;"><strong>Context:</strong></td><td>Post-recession, Fed cutting aggressively</td></tr>
+          </table>
+        </div>
+        <div class="yield-cell" style="background: var(--color-amber-50);">
+          <h4 style="color: var(--color-amber-800);">Bear Steepening</h4>
+          <p style="font-size: 12px; color: var(--color-amber-600); margin-bottom: 6px;">Long rates rise faster than short rates. Inflation expectations rising. Early expansion or supply-shock.</p>
+          <table style="font-size: 11px; width: 100%;">
+            <tr><td style="color: var(--color-amber-700); padding: 2px 0;"><strong>2yr:</strong></td><td>Rising slowly</td></tr>
+            <tr><td style="color: var(--color-amber-700); padding: 2px 0;"><strong>10yr:</strong></td><td>Rising fast</td></tr>
+            <tr><td style="color: var(--color-amber-700); padding: 2px 0;"><strong>Trade:</strong></td><td>TIPS, commodities, short duration, value stocks</td></tr>
+            <tr><td style="color: var(--color-amber-700); padding: 2px 0;"><strong>Context:</strong></td><td>Early recovery, fiscal stimulus, inflation concern</td></tr>
+          </table>
+        </div>
+        <div class="yield-cell" style="background: var(--color-blue-50);">
+          <h4 style="color: var(--color-blue-800);">Bull Flattening</h4>
+          <p style="font-size: 12px; color: var(--color-blue-600); margin-bottom: 6px;">Long rates fall, short rates sticky. Growth slowing, disinflation. Flight to quality.</p>
+          <table style="font-size: 11px; width: 100%;">
+            <tr><td style="color: var(--color-blue-700); padding: 2px 0;"><strong>2yr:</strong></td><td>Stable or falling slowly</td></tr>
+            <tr><td style="color: var(--color-blue-700); padding: 2px 0;"><strong>10yr:</strong></td><td>Falling</td></tr>
+            <tr><td style="color: var(--color-blue-700); padding: 2px 0;"><strong>Trade:</strong></td><td>Long duration treasuries, defensive equities</td></tr>
+            <tr><td style="color: var(--color-blue-700); padding: 2px 0;"><strong>Context:</strong></td><td>Late cycle growth slowdown, weak demand</td></tr>
+          </table>
+        </div>
+        <div class="yield-cell" style="background: var(--color-red-50);">
+          <h4 style="color: var(--color-red-800);">Bear Flattening / Inversion</h4>
+          <p style="font-size: 12px; color: var(--color-red-600); margin-bottom: 6px;">Short rates rise faster than long rates. Fed hiking. Inversion = recession warning. Classic late cycle.</p>
+          <table style="font-size: 11px; width: 100%;">
+            <tr><td style="color: var(--color-red-700); padding: 2px 0;"><strong>2yr:</strong></td><td>Rising fast (Fed hikes priced)</td></tr>
+            <tr><td style="color: var(--color-red-700); padding: 2px 0;"><strong>10yr:</strong></td><td>Rising slowly or flat</td></tr>
+            <tr><td style="color: var(--color-red-700); padding: 2px 0;"><strong>Trade:</strong></td><td>Avoid duration, short HY credit, cash</td></tr>
+            <tr><td style="color: var(--color-red-700); padding: 2px 0;"><strong>Context:</strong></td><td>Late cycle, Fed hiking into slowing growth</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fed Policy Cycle -->
+    <div class="card">
+      <p class="card-title">Fed Policy Cycle Stages</p>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div class="flow-row">
+          <div style="background: var(--color-teal-50); color: var(--color-teal-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 130px; text-align: center;">1. Easing / Cutting</div>
+          <div style="flex: 1; font-size: 12px;">Growth slowing, inflation falling below target. Fed cuts to stimulate. Short rates fall fast. Equities initially volatile then rally. Duration performs.</div>
+          <span class="badge badge-teal">Bullish bonds, gold</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-blue-50); color: var(--color-blue-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 130px; text-align: center;">2. On Hold (low)</div>
+          <div style="flex: 1; font-size: 12px;">Fed pausing at low rates. Recovery taking hold. Curve steepens. Best period for risk assets — Goldilocks regime.</div>
+          <span class="badge badge-blue">Best for equities</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-amber-50); color: var(--color-amber-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 130px; text-align: center;">3. Hiking Cycle</div>
+          <div style="flex: 1; font-size: 12px;">Inflation above target, growth strong. Fed hiking every meeting. Short rates spike. Curve flattens. Value over growth. USD strengthens.</div>
+          <span class="badge badge-amber">Value, energy, TIPS</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-red-50); color: var(--color-red-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 130px; text-align: center;">4. On Hold (high)</div>
+          <div style="flex: 1; font-size: 12px;">Fed at peak rates, waiting. Curve inverted or flat. Credit conditions tighten. Recession risk rising. Duration begins to outperform.</div>
+          <span class="badge badge-red">Risk-off building</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Duration Risk -->
+      <div class="card">
+        <p class="card-title">Duration Risk — Asset Sensitivity to Rates</p>
+        <table>
+          <thead><tr><th>Asset</th><th>Duration</th><th>Rate ↑ impact</th></tr></thead>
+          <tbody>
+            <tr><td>30yr Treasury</td><td><span class="badge badge-red">~18 years</span></td><td style="font-size: 12px;">−18% per 1% rate rise</td></tr>
+            <tr><td>10yr Treasury</td><td><span class="badge badge-amber">~9 years</span></td><td style="font-size: 12px;">−9% per 1% rate rise</td></tr>
+            <tr><td>2yr Treasury</td><td><span class="badge badge-teal">~2 years</span></td><td style="font-size: 12px;">−2% per 1% rate rise</td></tr>
+            <tr><td>Growth stocks (high P/E)</td><td><span class="badge badge-red">Very high</span></td><td style="font-size: 12px;">Cash flows far in future; highly sensitive</td></tr>
+            <tr><td>Value / dividend stocks</td><td><span class="badge badge-teal">Lower</span></td><td style="font-size: 12px;">Near-term cash flows; more resilient</td></tr>
+            <tr><td>IG Corporate bonds</td><td><span class="badge badge-amber">~7–8 years</span></td><td style="font-size: 12px;">Rate + credit spread risk</td></tr>
+            <tr><td>HY Corporate bonds</td><td><span class="badge badge-amber">~4–5 years</span></td><td style="font-size: 12px;">Credit risk dominates over duration</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tactical Positioning -->
+      <div class="card">
+        <p class="card-title">Tactical Rates Positioning Playbook</p>
+        <table>
+          <thead><tr><th>Signal</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td style="font-size: 12px;">Curve inverted + ISM falling</td><td style="font-size: 12px;">Add long duration (2s10s un-inversion trade)</td></tr>
+            <tr><td style="font-size: 12px;">Inflation breakevens rising</td><td style="font-size: 12px;">TIPS over nominals; short duration</td></tr>
+            <tr><td style="font-size: 12px;">Fed pivot signals (dot plot)</td><td style="font-size: 12px;">Front-end rally — buy 2yr aggressively</td></tr>
+            <tr><td style="font-size: 12px;">Bear steepening underway</td><td style="font-size: 12px;">Short 30yr, long 2yr (steepener)</td></tr>
+            <tr><td style="font-size: 12px;">Credit spreads widening fast</td><td style="font-size: 12px;">Flight to quality — long UST, reduce HY</td></tr>
+            <tr><td style="font-size: 12px;">Real rates deeply negative</td><td style="font-size: 12px;">Gold, BTC, real assets outperform</td></tr>
+            <tr><td style="font-size: 12px;">Real rates rising sharply</td><td style="font-size: 12px;">Reduce growth stocks, commodities, BTC</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Key Rate Indicators -->
+    <div class="card">
+      <p class="card-title">Key Rate Indicators to Track</p>
+      <div class="grid-4">
+        <div class="metric-card">
+          <p class="metric-label">2s10s spread</p>
+          <p style="font-size: 13px; font-weight: 500;">Yield curve shape</p>
+          <p class="metric-note">Negative = inversion = recession watch</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Real 10yr yield</p>
+          <p style="font-size: 13px; font-weight: 500;">TIPS market rate</p>
+          <p class="metric-note">Key driver for gold &amp; BTC</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">5yr5yr breakeven</p>
+          <p style="font-size: 13px; font-weight: 500;">Inflation expectations</p>
+          <p class="metric-note">Long-run inflation anchoring signal</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">OIS-Libor spread</p>
+          <p style="font-size: 13px; font-weight: 500;">Banking stress proxy</p>
+          <p class="metric-note">Spikes in crises (2008, 2020)</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">3m10s spread</p>
+          <p style="font-size: 13px; font-weight: 500;">Fed's preferred recession signal</p>
+          <p class="metric-note">More reliable than 2s10s; inversion = recession within 12–18mo</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Term Premium -->
+    <div class="card">
+      <p class="card-title">Term Premium &amp; Yield Curve Factors</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Long-term yield = average expected short rates over the period + <strong>term premium</strong>. Term premium is the extra compensation investors demand for holding duration rather than rolling short-term instruments. It embeds inflation uncertainty, supply pressure, and risk aversion — and is not directly observable (estimated via models like ACM).</p>
+      <div class="grid-2">
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 8px;">Term Premium by Regime</p>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--color-blue-700);">
+            <div><span class="badge badge-red">Crisis / Flight to Quality</span> → TP goes <strong>negative</strong>. Bonds are so in demand as hedges that investors accept yields below expected short rate path.</div>
+            <div><span class="badge badge-teal">QE Era / Low Volatility</span> → TP <strong>compressed</strong>. Fed is buying duration directly; investors confident in anchored inflation.</div>
+            <div><span class="badge badge-amber">Stagflation / Fiscal Expansion</span> → TP <strong>explodes higher</strong>. Investors demand extra yield for inflation risk + heavy Treasury supply. Long yields rise even beyond Fed hike expectations.</div>
+            <div><span class="badge badge-blue">Goldilocks</span> → TP <strong>low and stable</strong>. Investors confident; carry trade works; bond returns driven by coupon, not moves.</div>
+          </div>
+        </div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 8px;">3 Principal Yield Curve Factors</p>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--color-teal-700);">
+            <div>
+              <strong>Level (Factor 1)</strong> — Parallel shift of all yields. Explains ~80% of moves. Driven by broad inflation/growth expectations and Fed credibility.
+            </div>
+            <div>
+              <strong>Slope (Factor 2)</strong> — Short vs. long divergence. Driven by policy expectations. Steepening = easing expected or inflation fears. Flattening = hiking or growth concerns.
+            </div>
+            <div>
+              <strong>Curvature (Factor 3)</strong> — Belly vs. wings. The intermediate sector moves differently from short and long ends. Often driven by term premium or technicals. Watch 2s5s10s butterfly.
+            </div>
+          </div>
+          <p style="font-size: 11px; color: var(--color-teal-600); margin-top: 8px; font-style: italic;">P&amp;L attribution: "Did yields rise overall (level), did the curve flatten (slope), or did the belly cheapen (curvature)?"</p>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 10px 14px; background: var(--color-amber-50); border-radius: var(--radius-md); font-size: 12px; color: var(--color-amber-800);">
+        <strong>Trading implication:</strong> If term premiums are too low (QE-compressed) → position for normalization (short long bonds — yields rise even if Fed expectations unchanged). If term premiums are too high (fear spike) → go long bonds expecting TP to mean-revert as fear fades. Term premium makes long bonds move even without Fed action.
+      </div>
+    </div>
+
+    <!-- Carry & Roll-Down -->
+    <div class="card">
+      <p class="card-title">Carry &amp; Roll-Down — The "Getting Paid to Wait" Framework</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Carry and roll-down explain your expected return assuming the yield curve stays unchanged. They determine whether a position bleeds P&amp;L slowly or earns income while you wait for your thesis to play out.</p>
+      <div class="grid-2">
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 6px;">Carry</p>
+          <p style="font-size: 12px; color: var(--color-teal-700);">Coupon income minus funding cost (repo). In a normal steep curve, long bonds have <strong>positive carry</strong> — you earn more yield than the short-term funding costs. In an inverted curve, long bonds can be <strong>negative carry</strong> — you pay more to fund than you earn.</p>
+          <p style="font-size: 12px; color: var(--color-teal-700); margin-top: 6px;"><em>Example: 10yr yields 4%, repo rate 5.3% → negative carry of 1.3%. The curve must steepen / yields fall for you to net profit.</em></p>
+        </div>
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 6px;">Roll-Down</p>
+          <p style="font-size: 12px; color: var(--color-blue-700);">As time passes, a bond "rolls down" the yield curve — a 10yr bond becomes a 9yr bond. If the curve is upward sloping, shorter maturities yield less, so the bond's yield falls → price rises → P&amp;L gain. Roll-down is the price appreciation from simply "aging" down the curve.</p>
+          <p style="font-size: 12px; color: var(--color-blue-700); margin-top: 6px;"><em>In a steep curve: both carry AND roll-down are positive → powerful tailwind. In an inverted curve: both can be negative → position must move quickly or bleeds.</em></p>
+        </div>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">
+        <strong>Key rule:</strong> High positive carry gives you <em>cushion</em> — the position earns income while waiting. Negative carry means you need the trade to pay off quickly. A steep curve is a systematic "get paid to own duration" signal; an inverted curve is the opposite — a tax on being long.
+      </div>
+    </div>
+
+    <!-- Regime-Based Rate Strategy -->
+    <div class="card">
+      <p class="card-title">Rate Strategy by Macro Regime</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Regime</th>
+            <th>Rate Environment</th>
+            <th>Optimal Rate Trades</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-amber">Overheating</span><br><small style="color: var(--color-text-hint);">↑ Growth, ↑ Inflation</small></td>
+            <td style="font-size: 12px;">Yields rise, led by front end as Fed hikes. Curve flattens / inverts. Bear flattening regime.</td>
+            <td style="font-size: 12px;"><strong>Short 2–5yr</strong> (most rate sensitive to hikes). <strong>Flatteners</strong> (short 2yr / long 10yr). Short breakeven only if expecting Fed to tame inflation. Avoid duration.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-red">Stagflation</span><br><small style="color: var(--color-text-hint);">↓ Growth, ↑ Inflation</small></td>
+            <td style="font-size: 12px;">Curve flattens or inverts. Front rates rise (policy); long rates may lag (weak growth). Bonds AND stocks suffer.</td>
+            <td style="font-size: 12px;"><strong>Flatteners</strong> (pay front, receive long). <strong>Long breakeven / TIPS</strong> if inflation stays high. Buy payer swaptions on 2yr. Avoid long bonds outright.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-purple">Recession / Easing</span><br><small style="color: var(--color-text-hint);">↓ Growth, ↓ Inflation</small></td>
+            <td style="font-size: 12px;">Yields fall, led by short end (Fed cutting). Bull steepening. 2yr falls fastest. Long rates fall too but less.</td>
+            <td style="font-size: 12px;"><strong>Long 2–10yr duration</strong>. <strong>Bull steepener</strong> (receive 2yr, pay 10yr). Long bond futures (10yr, 30yr). Short breakeven (deflation/disinflation).</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-teal">Goldilocks</span><br><small style="color: var(--color-text-hint);">↑ Growth, low Inflation</small></td>
+            <td style="font-size: 12px;">Stable rates, low volatility. Mild steepening possible if Fed easing slightly. Carry trades work best.</td>
+            <td style="font-size: 12px;"><strong>Carry trades</strong> — long intermediates for roll-down. Sell rate volatility (options). Buy 5yr for carry. Mild steepener. Long credit / MBS spread products.</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-blue">Crisis / Flight to Quality</span><br><small style="color: var(--color-text-hint);">Shock, Fed to zero + QE</small></td>
+            <td style="font-size: 12px;">Yields plunge (especially short end to zero). Bull steepening or curve twist. Breakevens collapse (deflation fear). Term premium goes negative.</td>
+            <td style="font-size: 12px;"><strong>Maximum long duration</strong>. Long SOFR futures (price in zero rates). Long bond calls for hedging. After panic: watch for QE taper → swap spread tighteners. TP mean-reversion trade.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 4: FX & INFLATION -->
+  <div id="fx" class="section">
+    <p class="section-title">FX Dynamics &amp; Inflation Cycle</p>
+    <p class="section-subtitle">Currency regimes, inflationary cycle playbook, commodities, and real asset positioning</p>
+
+    <!-- FX Drivers -->
+    <div class="card">
+      <p class="card-title">What Drives Currencies</p>
+      <div class="grid-3">
+        <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-purple-800); margin-bottom: 6px;">Interest Rate Differentials</p>
+          <p style="font-size: 12px; color: var(--color-purple-600);">Capital flows to highest real yield. If US real rates rise vs. Europe → USD strengthens vs. EUR. The carry trade amplifies this.</p>
+          <p style="font-size: 11px; color: var(--color-purple-600); margin-top: 6px;"><em>Formula: Carry = Yield country A − Yield country B</em></p>
+        </div>
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 6px;">Current Account Balance</p>
+          <p style="font-size: 12px; color: var(--color-blue-600);">Trade surplus → structural FX demand (JPY, CNY historically). Persistent deficits = currency vulnerability (EM). US deficit means the world recycles USD back into UST.</p>
+        </div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 6px;">Risk Sentiment &amp; Safe Havens</p>
+          <p style="font-size: 12px; color: var(--color-teal-600);">Risk-off → USD, JPY, CHF strengthen. Risk-on → AUD, NZD, EM FX, commodity currencies outperform. VIX spikes = USD bid.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carry Trade Mechanics -->
+    <div class="card">
+      <p class="card-title">Carry Trade Mechanics &amp; Unwind Risk</p>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <p style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">How carry works</p>
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+            <div style="background: var(--color-gray-50); padding: 8px; border-radius: var(--radius-md);">Borrow in low-yield currency (JPY, CHF)</div>
+            <div style="text-align: center; color: var(--color-text-hint);">↓ convert &amp; invest</div>
+            <div style="background: var(--color-teal-50); padding: 8px; border-radius: var(--radius-md);">Invest in high-yield currency (AUD, MXN, EM bonds)</div>
+            <div style="text-align: center; color: var(--color-text-hint);">↓ profit =</div>
+            <div style="background: var(--color-green-50); padding: 8px; border-radius: var(--radius-md);">Rate differential + FX appreciation (when stable)</div>
+          </div>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <p style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Unwind triggers (risk-off)</p>
+          <table style="font-size: 12px; width: 100%;">
+            <tr><td style="padding: 4px 0; border-bottom: 0.5px solid var(--color-border);">VIX spike &gt;25</td><td><span class="badge badge-red">Unwind signal</span></td></tr>
+            <tr><td style="padding: 4px 0; border-bottom: 0.5px solid var(--color-border);">BoJ rate hike (JPY rises)</td><td><span class="badge badge-red">Carry collapses</span></td></tr>
+            <tr><td style="padding: 4px 0; border-bottom: 0.5px solid var(--color-border);">EM currency crisis</td><td><span class="badge badge-red">Capital flight</span></td></tr>
+            <tr><td style="padding: 4px 0; border-bottom: 0.5px solid var(--color-border);">Credit spreads widen</td><td><span class="badge badge-amber">Unwind pressure</span></td></tr>
+            <tr><td style="padding: 4px 0;">USD squeeze / dollar rally</td><td><span class="badge badge-red">EM carry hurt</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inflationary Cycle Stages — 5 Phase Framework -->
+    <div class="card">
+      <p class="card-title">5-Phase Inflationary Cycle Playbook</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">Stagflation is a scenario branch, not a sequential phase. The cycle follows emergence → acceleration → peak → moderation → disinflation.</p>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div class="flow-row">
+          <div style="background: var(--color-teal-50); color: var(--color-teal-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 150px; text-align: center;">Phase I: Emergence</div>
+          <div style="flex: 1; font-size: 12px;">Early inflation uptick. Fed in denial — rates at lows, labeling it "transitory." Real rates very low or negative. Bear steepener in yield curve (long rates rise, short rates anchored). Cyclicals, commodities, and financials rally. FX: long AUD, CAD (commodity currencies), short JPY (reflation carry trade).</div>
+          <span class="badge badge-teal">Commodities + cyclicals + carry</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-amber-50); color: var(--color-amber-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 150px; text-align: center;">Phase II: Acceleration</div>
+          <div style="flex: 1; font-size: 12px;">Inflation broad-based and above 5%+. Fed hiking aggressively. Curve flattens then inverts. Equities enter correction — high P/E tech worst hit. Energy/materials outperform. FX: long USD (Fed hiking fastest), short energy importers (EUR, JPY). Bonds and stocks fall together — correlation turns positive.</div>
+          <span class="badge badge-amber">Energy + USD + TIPS vs equities</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-coral-50); color: var(--color-coral-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 150px; text-align: center;">Phase III: Peak</div>
+          <div style="flex: 1; font-size: 12px;">CPI 3-month annualized rate turns down. Commodity prices off highs. Demand cooling. Curve deeply inverted. Fed at or near terminal rate. USD often peaks around the final hike. Start closing bond shorts, begin bull steepener. Equities may bottom here — start nibbling quality growth.</div>
+          <span class="badge badge-coral">Close shorts + start duration</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-blue-50); color: var(--color-blue-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 150px; text-align: center;">Phase IV: Moderation</div>
+          <div style="flex: 1; font-size: 12px;">Inflation clearly falling but above 2% target ("last mile" problem). Growth soft. Fed on hold or cutting. Bull steepener begins (short rates fall faster). Tech and growth equities roar back. FX: sell USD, buy currencies that lagged (EUR, EMFX). EM carry trades revive — long MXN/BRL, short JPY/USD.</div>
+          <span class="badge badge-blue">Long bonds + tech + EM carry</span>
+        </div>
+        <div class="flow-row">
+          <div style="background: var(--color-purple-50); color: var(--color-purple-600); padding: 4px 10px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; min-width: 150px; text-align: center;">Phase V: Disinflation</div>
+          <div style="flex: 1; font-size: 12px;">CPI back near 2%. Fed easing. "Fed put" returns. Low rates → high equity multiples. Goldilocks regime. Carry trades flourish. FX: weak USD, long EMFX. Stock-bond negative correlation restored — 60/40 works again. Watch for asset bubbles forming as cheap money chases returns.</div>
+          <span class="badge badge-purple">Full risk-on + carry + long duration</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock-Bond Correlation Breakdown -->
+    <div class="card">
+      <p class="card-title">Critical: Stock-Bond Correlation Regime Shift</p>
+      <div class="grid-2">
+        <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-red-800); margin-bottom: 6px;">High Inflation — Correlation turns POSITIVE</p>
+          <p style="font-size: 12px; color: var(--color-red-600);">Bonds no longer hedge equity risk. Both stocks AND bonds fall together in Phases II-III. Traditional 60/40 portfolios get hit from both sides. Diversifiers needed: commodities, managed futures, real assets, long vol.</p>
+        </div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 6px;">Low Inflation — Correlation turns NEGATIVE</p>
+          <p style="font-size: 12px; color: var(--color-teal-600);">Classic stock-bond diversification works. Bonds hedge equity drawdowns. 60/40 and risk-parity portfolios perform. Bonds rally when equities sell off (flight to safety). Phases IV-V and Goldilocks regime.</p>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-top: 10px;"><strong>Implication:</strong> The moment you enter Phase II (CPI &gt;5%, Fed hiking), your bond allocation stops protecting you. Rotate to commodities, managed futures, or long vol as the equity hedge instead.</p>
+    </div>
+
+    <!-- FX Special Cases -->
+    <div class="card">
+      <p class="card-title">FX Special Cases — Often Missed</p>
+      <table>
+        <thead><tr><th>Situation</th><th>FX Impact</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-size: 12px; font-weight: 500;">Credible CB + CPI surprise upside</td>
+            <td style="font-size: 12px;"><span class="badge badge-green">↑ Currency strengthens</span></td>
+            <td style="font-size: 12px;">Market immediately prices more hikes → yield advantage → capital inflows. 2022 USD example.</td>
+          </tr>
+          <tr>
+            <td style="font-size: 12px; font-weight: 500;">Non-credible CB + CPI surprise</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Currency weakens</span></td>
+            <td style="font-size: 12px;">Market doesn't trust the CB to respond → inflation erodes currency value directly.</td>
+          </tr>
+          <tr>
+            <td style="font-size: 12px; font-weight: 500;">USD at final rate hike</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Peak → weakens after</span></td>
+            <td style="font-size: 12px;">USD typically peaks around last hike as rate advantage stops growing. Sell USD on confirmed pause.</td>
+          </tr>
+          <tr>
+            <td style="font-size: 12px; font-weight: 500;">Energy importer + commodity shock</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Currency weakens</span></td>
+            <td style="font-size: 12px;">EUR, JPY, INR: import-driven inflation without rate response capacity → terms of trade deteriorate.</td>
+          </tr>
+          <tr>
+            <td style="font-size: 12px; font-weight: 500;">EM early hiker</td>
+            <td style="font-size: 12px;"><span class="badge badge-green">↑ Currency + carry attractive</span></td>
+            <td style="font-size: 12px;">EMs that hiked aggressively in 2021-22 (Brazil, Mexico) offered high carry + currency appreciation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Inflation Scenario Branches -->
+    <div class="card">
+      <p class="card-title">Inflation Scenario Branches — Path Dependency</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">Real inflation cycles don't always follow the 5-phase sequence. Know these branches before they hit.</p>
+      <table>
+        <thead><tr><th>Scenario</th><th>Path</th><th>Key Trade</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500; font-size: 12px;"><span class="badge badge-teal">Soft Landing</span></td>
+            <td style="font-size: 12px;">Inflation peaks ~5%, Fed tightens just enough, no recession. 1994-95 analog.</td>
+            <td style="font-size: 12px;">Stay balanced — neither too bearish during hike cycle nor too bullish after. Quick pivot to growth on disinflation.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; font-size: 12px;"><span class="badge badge-red">Hard Landing</span></td>
+            <td style="font-size: 12px;">Fed overshoots, recession hits, inflation collapses rapidly. 1981-82, 2008 analogs.</td>
+            <td style="font-size: 12px;">Long Treasuries even in Phase II as hedge. Short equities/credit aggressively into recession. Buy distressed assets on pivot.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; font-size: 12px;"><span class="badge badge-red">Stagflation Spiral</span></td>
+            <td style="font-size: 12px;">Supply shocks persist. CB oscillates between hike/pause. 1970s analog.</td>
+            <td style="font-size: 12px;">Long commodities + TIPS as core holdings. Short broad equities. Avoid duration. Short currencies of stagflation-hit economies.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; font-size: 12px;"><span class="badge badge-amber">Whipsaw / Stop-Go</span></td>
+            <td style="font-size: 12px;">Inflation moderates → CB eases prematurely → inflation re-accelerates. 1970s stop-go analog.</td>
+            <td style="font-size: 12px;">Never declare "inflation over." Keep core TIPS/commodity hedge. Use options (not outright) for direction. Watch 5y5y breakevens for re-acceleration signal.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; font-size: 12px;"><span class="badge badge-amber">Structural High Inflation</span></td>
+            <td style="font-size: 12px;">Deglobalization + fiscal dominance keeps inflation at 4-6% for a decade.</td>
+            <td style="font-size: 12px;">Secular short duration. Core real assets. Avoid long-term fixed income. Equities in nominal GDP beneficiaries (commodity producers, industrials).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Key Phase Transition Signals -->
+    <div class="card">
+      <p class="card-title">Key Phase Transition Signals</p>
+      <div class="grid-3">
+        <div class="metric-card">
+          <p class="metric-label">Phase I → II trigger</p>
+          <p style="font-size: 13px; font-weight: 500;">CPI 3m annualized &gt;4%</p>
+          <p class="metric-note">+ NFIB price plans rising + 5y5y breakevens above 2.5%</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Phase II → III trigger</p>
+          <p style="font-size: 13px; font-weight: 500;">CPI 3m annualized turns down</p>
+          <p class="metric-note">+ commodity prices off highs + PMI new orders falling</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Phase III → IV trigger</p>
+          <p style="font-size: 13px; font-weight: 500;">Fed signals pause / data-dependent</p>
+          <p class="metric-note">+ core services ex-housing decelerating + breakevens stable</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Whipsaw warning</p>
+          <p style="font-size: 13px; font-weight: 500;">Breakevens stop falling</p>
+          <p class="metric-note">+ wage growth re-accelerating + commodity supply shock renewal</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">USD peak signal</p>
+          <p style="font-size: 13px; font-weight: 500;">Final rate hike confirmed</p>
+          <p class="metric-note">+ other CBs still hiking → reduce long dollar positions</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">"Last mile" risk</p>
+          <p style="font-size: 13px; font-weight: 500;">Core services ex-housing sticky</p>
+          <p class="metric-note">Inflation stalls at 3% — CB holds longer than markets price</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- FX Impact on Asset Classes -->
+      <div class="card">
+        <p class="card-title">FX Impact on Asset Classes</p>
+        <table>
+          <thead><tr><th>Asset</th><th>Strong USD</th><th>Weak USD</th></tr></thead>
+          <tbody>
+            <tr><td>Gold</td><td><span class="badge badge-red">Headwind</span></td><td><span class="badge badge-teal">Tailwind</span></td></tr>
+            <tr><td>Oil / Commodities</td><td><span class="badge badge-red">Pressure</span></td><td><span class="badge badge-teal">Rally</span></td></tr>
+            <tr><td>EM equities</td><td><span class="badge badge-red">Capital outflow</span></td><td><span class="badge badge-teal">Strong inflows</span></td></tr>
+            <tr><td>US multinationals</td><td><span class="badge badge-red">EPS headwind</span></td><td><span class="badge badge-teal">EPS tailwind</span></td></tr>
+            <tr><td>Bitcoin</td><td><span class="badge badge-red">Correlation negative</span></td><td><span class="badge badge-teal">Positive correlation</span></td></tr>
+            <tr><td>US domestic stocks</td><td><span class="badge badge-amber">Mixed</span></td><td><span class="badge badge-amber">Mixed</span></td></tr>
+            <tr><td>UST bonds</td><td><span class="badge badge-teal">Safe-haven inflows</span></td><td><span class="badge badge-amber">Less attractive</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Inflation Hedges -->
+      <div class="card">
+        <p class="card-title">Inflation Hedging Assets</p>
+        <table>
+          <thead><tr><th>Asset</th><th>Effectiveness</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>TIPS</td><td><span class="badge badge-teal">Direct</span></td><td style="font-size: 12px;">CPI-linked principal. Best for realized inflation.</td></tr>
+            <tr><td>Commodities</td><td><span class="badge badge-teal">Strong</span></td><td style="font-size: 12px;">Energy, metals, ags. Often cause of inflation.</td></tr>
+            <tr><td>Real Estate / REITs</td><td><span class="badge badge-teal">Good</span></td><td style="font-size: 12px;">Rents adjust. But rate-sensitive in short-term.</td></tr>
+            <tr><td>Gold</td><td><span class="badge badge-amber">Moderate</span></td><td style="font-size: 12px;">Best vs. real rate decline &amp; currency debasement.</td></tr>
+            <tr><td>Equities (broad)</td><td><span class="badge badge-amber">Mixed</span></td><td style="font-size: 12px;">Revenue grows with prices, but margins squeezed.</td></tr>
+            <tr><td>Nominal bonds</td><td><span class="badge badge-red">Poor</span></td><td style="font-size: 12px;">Fixed coupon eroded by inflation.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: EQUITIES & CREDIT -->
+  <div id="equities" class="section">
+    <p class="section-title">Equities &amp; Credit Cycle</p>
+    <p class="section-subtitle">S&amp;P 500 sector rotation by regime, path-dependent credit framework, and duration mismatch risk</p>
+
+    <!-- S&P 500 Sector Rotation -->
+    <div class="card">
+      <p class="card-title">S&amp;P 500 Sector Rotation by Macro Regime</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Sector</th>
+            <th>Goldilocks</th>
+            <th>Overheat</th>
+            <th>Stagflation</th>
+            <th>Recession</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="font-weight: 500;">Technology</td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-red">★</span></td><td><span class="badge badge-amber">★★</span></td></tr>
+          <tr><td style="font-weight: 500;">Financials</td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-red">★</span></td><td><span class="badge badge-red">★</span></td></tr>
+          <tr><td style="font-weight: 500;">Energy</td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-red">★</span></td></tr>
+          <tr><td style="font-weight: 500;">Materials</td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-red">★</span></td></tr>
+          <tr><td style="font-weight: 500;">Industrials</td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-red">★</span></td></tr>
+          <tr><td style="font-weight: 500;">Consumer Discretionary</td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-red">★</span></td><td><span class="badge badge-red">★</span></td></tr>
+          <tr><td style="font-weight: 500;">Consumer Staples</td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-teal">★★★</span></td></tr>
+          <tr><td style="font-weight: 500;">Healthcare</td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-teal">★★★</span></td></tr>
+          <tr><td style="font-weight: 500;">Utilities</td><td><span class="badge badge-red">★</span></td><td><span class="badge badge-red">★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-teal">★★★</span></td></tr>
+          <tr><td style="font-weight: 500;">Real Estate (REITs)</td><td><span class="badge badge-teal">★★★</span></td><td><span class="badge badge-red">★</span></td><td><span class="badge badge-amber">★★</span></td><td><span class="badge badge-amber">★★</span></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size: 11px; color: var(--color-text-hint); margin-top: 8px;">★★★ = Outperform &nbsp;|&nbsp; ★★ = Neutral &nbsp;|&nbsp; ★ = Underperform</p>
+    </div>
+
+    <!-- Factor Rotation by Regime -->
+    <div class="card">
+      <p class="card-title">Factor &amp; Style Rotation by Macro Regime</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Within sectors, factor leadership rotates predictably with macro conditions. These cuts across industries and amplify (or offset) sector calls.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Factor / Style</th>
+            <th>Goldilocks</th>
+            <th>Overheat / Inflation</th>
+            <th>Stagflation</th>
+            <th>Recession / Easing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500;">Growth vs. Value</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Growth leads</span> Low rates = high P/E justified</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Value leads</span> Near-term cash flows better; energy/fins benefit</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Real assets</span> Neither works well; commodity producers</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Quality growth</span> rebounds as rates fall; long-duration re-rates</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Small-Cap vs. Large-Cap</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Small-cap</span> High beta to growth, credit easy</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Small-cap</span> Rising rates = higher funding costs; prefer large</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Small-cap</span> No access to cheap credit; limited pricing power</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Small-cap later</span> Early-cycle rebound once credit eases</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Quality vs. Leverage</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Leveraged names bid</span> Liquidity ample; default risk low; spread compression</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Mixed</span> Quality margins hold; leverage stress builds</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Quality</span> Protect margins, strong balance sheets survive</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Quality first</span> then leveraged names once Fed pivots</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Momentum</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Strong</span> Sustained regime = leaders keep leading</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Rotation risk</span> Works until regime shift hits; sharp reversals</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Dangerous</span> Prior leaders (tech/growth) become biggest losers</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Early recovery</span> New momentum builds in defensives then cyclicals</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Dividend / Income</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Underperforms</span> Equities preferred over yield; growth beats income</td>
+            <td style="font-size: 12px;"><span class="badge badge-amber">Mixed</span> Income attractive vs. rising rates (until yields compete)</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Dividend</span> Cash income valued; staples/utilities with pricing power</td>
+            <td style="font-size: 12px;"><span class="badge badge-teal">↑ Dividend</span> Safe income as yields fall; outperform during uncertainty</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 11px; color: var(--color-text-hint); margin-top: 8px;">Key rule: Don't just pick the right sector — pick the right factor within it. Energy can outperform in Overheat but integrated majors (quality/large-cap) beat small explorers (leverage/small-cap).</p>
+    </div>
+
+    <!-- Market Breadth & Concentration -->
+    <div class="card">
+      <p class="card-title">Market Breadth &amp; Index Concentration Signals</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">The S&amp;P 500 index level can mask very different stories underneath. Breadth tells you whether a move is healthy (broad) or fragile (narrow).</p>
+      <div class="grid-2">
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 8px;">Broad Breadth = Healthy Regime</p>
+          <div style="font-size: 12px; color: var(--color-teal-700); display: flex; flex-direction: column; gap: 5px;">
+            <div>→ Equal-weighted S&amp;P (RSP) rising in tandem with cap-weighted (SPX)</div>
+            <div>→ Multiple sectors making new highs simultaneously</div>
+            <div>→ SPX/RSP ratio flat or falling — no concentration buildup</div>
+            <div>→ <strong>Signal:</strong> Macro tailwind is broad-based; fundamentals driving the move, not crowding into a few names</div>
+          </div>
+        </div>
+        <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-red-800); margin-bottom: 8px;">Narrow Breadth = Fragile Market</p>
+          <div style="font-size: 12px; color: var(--color-red-700); display: flex; flex-direction: column; gap: 5px;">
+            <div>→ SPX rising but RSP flat or falling — mega-caps carrying the index</div>
+            <div>→ XLK/SPY (tech vs. broad) making new highs = tech concentration risk</div>
+            <div>→ Most stocks below 200-day MA while index makes new highs</div>
+            <div>→ <strong>Signal:</strong> Any macro shock to the top names hits the whole index hard. 2022: rising yields hit mega-cap tech → entire index fell sharply.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <table>
+          <thead><tr><th>Indicator</th><th>Healthy Reading</th><th>Warning Reading</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight: 500;">SPX vs RSP ratio</td><td style="font-size: 12px;">Flat or RSP outperforming</td><td style="font-size: 12px;">SPX outperforming RSP sharply = narrow market</td></tr>
+            <tr><td style="font-weight: 500;">XLK/SPY ratio</td><td style="font-size: 12px;">Tech in line with market</td><td style="font-size: 12px;">XLK surging vs SPY = rate-sensitive concentration risk</td></tr>
+            <tr><td style="font-weight: 500;">% stocks above 200MA</td><td style="font-size: 12px;">&gt;60% = broad participation</td><td style="font-size: 12px;">&lt;40% while index flat = internal weakness</td></tr>
+            <tr><td style="font-weight: 500;">Equal-weight sector breadth</td><td style="font-size: 12px;">3+ sectors participating</td><td style="font-size: 12px;">Only 1–2 sectors driving — fragile</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Volatility Structure & Dealer Gamma -->
+    <div class="card">
+      <p class="card-title">Volatility Structure &amp; Dealer Gamma — Reading Market Positioning</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Volatility metrics are an X-ray of market positioning. They reveal whether investors are hedged or complacent, and whether the market is structurally stable or one shock away from a cascade.</p>
+      <div class="grid-2">
+        <div>
+          <p style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Implied vs. Realized Volatility (IV vs RV)</p>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+            <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-teal-800);">
+              <strong>IV much &gt; RV</strong> → Market is paying up for protection. Investors are over-hedged / fearful. Contrarian signal: if the feared event passes without incident, vol collapses → relief rally. Good time to sell premium.
+            </div>
+            <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-red-800);">
+              <strong>RV spikes above IV</strong> → The market moved more than options priced. Implies a real shock. IV will catch up fast as everyone scrambles for protection. VIX explodes.
+            </div>
+            <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-blue-800);">
+              <strong>VIX Term Structure Inverted</strong> (near-term vol &gt; far-term) → Crisis / near-term panic. Short-term options expensive. After event resolves, near-term vol collapses fast. Reverts to normal contango quickly.
+            </div>
+            <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-amber-800);">
+              <strong>High Skew</strong> (puts much more expensive than calls) → Crash insurance in demand. Market is "hedged" — a downturn may be buffered. But if vol is persistently high with no catalyst, it may be overdone. Low skew → complacency → buy cheap puts.
+            </div>
+          </div>
+        </div>
+        <div>
+          <p style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Dealer Gamma Dynamics</p>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+            <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-teal-800);">
+              <strong>Dealers Long Gamma</strong> → They sell as market rises, buy as it falls. Creates mean-reversion. Market feels "pinned" or range-bound. Realized vol suppressed. Common when investors sell covered calls / puts (yield-seeking). <em>Happens in calm Goldilocks.</em>
+            </div>
+            <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-red-800);">
+              <strong>Dealers Short Gamma</strong> → They buy as market rises, sell as it falls. Amplifies moves. "Air pocket" drops possible — market falls through put strikes, dealer selling adds fuel. Common when investors panic-buy puts or aggressively buy calls. <em>Happens in fear/speculation regimes.</em>
+            </div>
+            <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-purple-800);">
+              <strong>Gamma Walls</strong> → Large open interest at a specific strike acts as magnet or ceiling. If dealers are long calls at a strike above market, they sell into rallies approaching that level ("gamma wall" capping the move). Heavy put OI below = potential support or accelerant depending on dealer positioning.
+            </div>
+            <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 8px 10px; color: var(--color-blue-800);">
+              <strong>Post-Expiration Fragility</strong> → Options pinning ends at monthly/quarterly expiry. The market can make a directional move immediately after the pin releases. If fundamentals deteriorated during the pinned period, the break can be sharp.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 10px 14px; background: var(--color-amber-50); border-radius: var(--radius-md); font-size: 12px; color: var(--color-amber-800);">
+        <strong>Checklist before a big S&amp;P move:</strong> Is IV &gt; RV? (over-hedged = vol crush likely if no blow-up) | Is VIX term structure inverted? (near-term panic) | Is skew high or low? (crash insurance cheap or expensive) | Are dealers long or short gamma? (will moves be dampened or amplified) | What's the nearest gamma wall? (magnet / resistance level)
+      </div>
+    </div>
+
+    <!-- Path-Dependent Credit Framework -->
+    <div class="card">
+      <p class="card-title">Path-Dependent Asset-Liability Framework</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Credit crises don't just happen — they follow a path. The mismatch between asset duration and liability duration is the structural fault line.</p>
+      <div class="grid-2">
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 8px;">Duration Mismatch Risk</p>
+          <p style="font-size: 12px; color: var(--color-blue-600);">Banks/institutions borrow short-term (deposits, commercial paper) and lend long-term (mortgages, corporate loans). When short rates rise:</p>
+          <ul style="font-size: 12px; color: var(--color-blue-600); margin-top: 6px; list-style: none;">
+            <li>→ Funding costs rise immediately</li>
+            <li>→ Asset yields locked in at low rates</li>
+            <li>→ Net interest margin compresses</li>
+            <li>→ Mark-to-market losses on held assets</li>
+          </ul>
+          <p style="font-size: 11px; color: var(--color-blue-600); margin-top: 8px; font-style: italic;">Example: SVB 2023 — long UST / MBS funded with short-term deposits</p>
+        </div>
+        <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-amber-800); margin-bottom: 8px;">Refinancing / Roll-Over Risk</p>
+          <p style="font-size: 12px; color: var(--color-amber-600);">When short-term debt must be rolled at much higher rates. The "maturity wall" — large amounts of debt maturing simultaneously into a high-rate environment creates systemic pressure.</p>
+          <ul style="font-size: 12px; color: var(--color-amber-600); margin-top: 6px; list-style: none;">
+            <li>→ Monitor corporate debt maturities by year</li>
+            <li>→ CRE (commercial real estate) a key risk</li>
+            <li>→ Private credit opacity adds hidden risk</li>
+            <li>→ EM sovereign rollover risk in USD debt</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credit Cycle Stages -->
+    <div class="card">
+      <p class="card-title">Traditional Credit Cycle vs. Modern (Path-Dependent) View</p>
+      <div class="grid-2">
+        <div>
+          <p style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Traditional linear view</p>
+          <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
+            <div style="background: var(--color-teal-50); padding: 6px 10px; border-radius: var(--radius-md); color: var(--color-teal-800);">1. Expansion → credit growth, standards loosen</div>
+            <div style="background: var(--color-amber-50); padding: 6px 10px; border-radius: var(--radius-md); color: var(--color-amber-800);">2. Peak → leverage maxes out, rates rise</div>
+            <div style="background: var(--color-red-50); padding: 6px 10px; border-radius: var(--radius-md); color: var(--color-red-800);">3. Contraction → defaults rise, credit tightens</div>
+            <div style="background: var(--color-purple-50); padding: 6px 10px; border-radius: var(--radius-md); color: var(--color-purple-800);">4. Trough → deleveraging, conditions reset</div>
+          </div>
+        </div>
+        <div>
+          <p style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Modern path-dependent view</p>
+          <div style="font-size: 12px; color: var(--color-text-muted); display: flex; flex-direction: column; gap: 4px;">
+            <p>The crisis outcome depends on <em>how</em> you arrived at the stress, not just that stress exists. Key questions:</p>
+            <ul style="list-style: none; color: var(--color-text-muted);">
+              <li>→ How fast did rates rise? (velocity matters)</li>
+              <li>→ What is the collateral chain? (cross-collateralization)</li>
+              <li>→ Who holds the duration risk? (banks vs. market)</li>
+              <li>→ What is the policy backstop capacity?</li>
+              <li>→ Are there concentrated refinancing maturities?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credit Spread Signals -->
+    <div class="card">
+      <p class="card-title">Credit Spread Signals</p>
+      <div class="grid-3">
+        <div class="metric-card">
+          <p class="metric-label">IG Spreads (OAS)</p>
+          <p style="font-size: 13px; font-weight: 500;">Tightening = risk-on</p>
+          <p class="metric-note">Watch for sudden widening — early warning</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">HY Spreads (OAS)</p>
+          <p style="font-size: 13px; font-weight: 500;">Leading equity indicator</p>
+          <p class="metric-note">&gt;700bp = distress territory</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">CDS (CDX IG/HY)</p>
+          <p style="font-size: 13px; font-weight: 500;">Real-time credit fear gauge</p>
+          <p class="metric-note">Spikes precede equity selloffs</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yield Curve Regimes incl. Twist -->
+    <div class="card">
+      <p class="card-title">Yield Curve Regimes &amp; What They Mean for Credit</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">The curve shape tells you where credit stress is building. The path-dependent view asks: how does each regime interact with specific balance sheets?</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Regime</th>
+            <th>What's Moving</th>
+            <th>Macro Signal</th>
+            <th>Credit / Asset Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500;"><span class="badge badge-teal">Bull Steepening</span></td>
+            <td style="font-size: 12px;">Short rates fall fast; long rates fall less</td>
+            <td style="font-size: 12px;">Fed cutting aggressively in recession/crisis</td>
+            <td style="font-size: 12px;">Bullish govt bonds, but economic distress — riskier assets underperform during episode. Look for distressed asset opportunities.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;"><span class="badge badge-amber">Bear Steepening</span></td>
+            <td style="font-size: 12px;">Long rates rise faster; short rates flat/low</td>
+            <td style="font-size: 12px;">Inflation fears; strong growth rebound</td>
+            <td style="font-size: 12px;">Risk-on: equities + cyclicals outperform. Long-duration bonds suffer. Short-term borrowers have cheap funding.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;"><span class="badge badge-blue">Bull Flattening</span></td>
+            <td style="font-size: 12px;">Long rates fall more; short rates near zero</td>
+            <td style="font-size: 12px;">Weak growth, tepid inflation, growth scare</td>
+            <td style="font-size: 12px;">Cautious. Long bonds rally. Often precedes Bull Steepening if recession materializes. Not yet time to add credit risk.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;"><span class="badge badge-red">Bear Flattening / Inversion</span></td>
+            <td style="font-size: 12px;">Short rates rise faster (Fed hiking); long rates sticky</td>
+            <td style="font-size: 12px;">Late-cycle tightening — recession probability rising</td>
+            <td style="font-size: 12px;">Most dangerous for near-term rollover needs. Funding costs spike. Watch maturity walls. Reduce HY credit exposure.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;"><span class="badge badge-purple">Yield Curve Twist</span></td>
+            <td style="font-size: 12px;">Short and long ends move in opposite directions — curvature changes, not just slope</td>
+            <td style="font-size: 12px;">Transition periods; policy interventions (Operation Twist); mixed signals</td>
+            <td style="font-size: 12px;">Hard to read. Short yields fall (good for near-term borrowers), long yields rise (bad for duration holders). Often signals a regime change is underway. Watch which borrowers benefit vs. which are hurt.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 11px; color: var(--color-text-hint); margin-top: 8px;">Asset-liability insight: Bear flattening = maximum pressure on those with near-term rollover needs. Bull steepening = relief is coming, but only after pain materializes.</p>
+    </div>
+
+    <!-- Reflexivity & Forward-Looking Risk -->
+    <div class="card">
+      <p class="card-title">Reflexivity &amp; Forward-Looking Risk Framework</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Markets are adaptive systems — not clockwork cycles. Expectations change outcomes. The path-dependent approach "wires redundancy triggers in advance so the next liquidity squeeze becomes an execution checklist, not a surprise."</p>
+      <div class="grid-2">
+        <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-purple-800); margin-bottom: 8px;">Reflexivity in Action</p>
+          <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--color-purple-700);">
+            <div>→ <strong>Self-fulfilling crisis:</strong> If investors fear a funding squeeze, they pull credit early — making the squeeze happen even if fundamentals didn't demand it</div>
+            <div>→ <strong>Self-averting crisis:</strong> If investors deleverage preemptively on warnings, imbalances clear before they blow up</div>
+            <div>→ <strong>Policy reflexivity:</strong> CB credibility signals themselves change behavior — a credible inflation-fighter causes markets to tighten for them</div>
+            <div>→ <strong>Key implication:</strong> Don't dismiss warning signals because no blow-up followed. The best warnings are often never confirmed — the market reacted and averted the crisis.</div>
+          </div>
+        </div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 8px;">Forward-Looking Checklist</p>
+          <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--color-teal-700);">
+            <div>→ <strong>Who refinances when?</strong> Map maturity walls by sector for next 12–18 months</div>
+            <div>→ <strong>At what rate?</strong> If rates are 300bp+ higher than original issuance, who can't afford it?</div>
+            <div>→ <strong>Who holds duration risk?</strong> Banks (systemic) vs. market (mark-to-market, not systemic)</div>
+            <div>→ <strong>Policy backstop capacity?</strong> How does Fed/FDIC intervention change the reflexive loop?</div>
+            <div>→ <strong>Have borrowers termed out?</strong> If yes, the "inevitable" crisis may be 2–3 years away, not imminent</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 10px 14px; background: var(--color-blue-50); border-radius: var(--radius-md);">
+        <p style="font-size: 12px; color: var(--color-blue-800);"><strong>Concrete example (from primer):</strong> A real estate firm borrows via 1-year commercial paper to fund long-term property. During low rates, it rolls easily each year. The moment the Fed hikes 500bp, the annual refinancing becomes prohibitively expensive — the firm sells properties at a discount, banks see collateral values fall, and pull credit from the whole sector. Traditional view saw an expansion; path-dependent view flagged the duration mismatch and maturity window as the structural fault line.</p>
+      </div>
+    </div>
+
+    <!-- Why Traditional Credit Cycle Falls Short -->
+    <div class="card">
+      <p class="card-title">Why the Traditional Credit Cycle Framework Fails</p>
+      <div class="grid-2">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-red-800); margin-bottom: 3px;">Poor Timing Precision</p>
+            <p style="font-size: 12px; color: var(--color-red-700);">"Historical precedent doesn't help predict the exact date a boom ends." Warning signs (rapid credit growth, leverage) are necessary but not sufficient — they confirm a crisis is possible, never when. The framework describes phases after they occur.</p>
+          </div>
+          <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-amber-800); margin-bottom: 3px;">Over-Simplification</p>
+            <p style="font-size: 12px; color: var(--color-amber-700);">Real crises can jump from calm to crisis (COVID March 2020) without following textbook phases. Assuming gradual progression is dangerous. Idiosyncratic shocks don't fit the mold.</p>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 3px;">Policy Intervention Short-Circuits the Cycle</p>
+            <p style="font-size: 12px; color: var(--color-blue-700);">CBs actively prevent "panic" phases via QE, rate cuts, bailouts. The expected cleansing bust may never fully materialize. 1998 (LTCM), 2008, 2020 all showed Fed truncating the cycle. The model assumes a cycle policy won't allow to complete.</p>
+          </div>
+          <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-purple-800); margin-bottom: 3px;">One-Size-Fits-All</p>
+            <p style="font-size: 12px; color: var(--color-purple-700);">Each cycle differs: housing debt (2008), corporate leverage (2015 EM), EM carry trades (1997 Asia), pandemic (2020). Treating them as generic "expansion → bust" ignores structural differences that determine who is actually vulnerable.</p>
+          </div>
+        </div>
+      </div>
+      <p style="font-size: 11px; color: var(--color-text-hint); margin-top: 10px;"><strong>Better question to ask:</strong> Instead of "Where are we in the cycle?" → "What stresses exist right now, and how do they unfold under different policy paths?"</p>
+    </div>
+  </div>
+
+  <!-- SECTION 6: BITCOIN -->
+  <div id="bitcoin" class="section">
+    <p class="section-title">Bitcoin as Macro Liquidity Release Valve</p>
+    <p class="section-subtitle">Real rates, ETF flows, futures positioning, and crypto cross-collateralization</p>
+
+    <!-- Bitcoin Macro Framework -->
+    <div class="card">
+      <p class="card-title">Bitcoin's Macro Position</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">Bitcoin sits at the far end of the risk curve — the last asset to receive liquidity in expansions and first to lose it in contractions. It acts as a release valve for excess global liquidity.</p>
+      <div class="grid-3">
+        <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-purple-800); margin-bottom: 4px;">Primary Driver: Real Rates</p>
+          <p style="font-size: 12px; color: var(--color-purple-600);">BTC is inversely correlated with real 10yr yields. When real rates fall (or go negative), BTC rallies strongly. When real rates rise sharply, BTC sells off.</p>
+          <p style="font-size: 12px; color: var(--color-purple-600); margin-top: 6px;"><em>Watch: TIPS 10yr real yield (DXY inverse also matters)</em></p>
+        </div>
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 4px;">Secondary Driver: Global M2</p>
+          <p style="font-size: 12px; color: var(--color-teal-600);">BTC price has ~12-week lagged correlation with global M2 money supply (USD + EUR + JPY + CNY in USD terms). When central banks expand balance sheets, BTC captures excess liquidity.</p>
+        </div>
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 4px;">Spot ETF Structural Bid</p>
+          <p style="font-size: 12px; color: var(--color-blue-600);">US spot BTC ETFs launched Jan 2024, accumulating $36B+ in year one. Creates systematic inflows from traditional finance. Daily flow data now a key signal (BlackRock IBIT, Fidelity FBTC).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Positioning Signals -->
+    <div class="card">
+      <p class="card-title">Bitcoin Positioning &amp; Sentiment Signals</p>
+      <table>
+        <thead><tr><th>Signal</th><th>Bullish Reading</th><th>Bearish Reading</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500;">Futures Open Interest (OI)</td>
+            <td style="font-size: 12px;">Rising OI + rising price = trend confirmation</td>
+            <td style="font-size: 12px;">Falling OI + rising price = weak / fake rally</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Funding Rates</td>
+            <td style="font-size: 12px;">Slightly positive (longs pay modest premium)</td>
+            <td style="font-size: 12px;">Very high positive = overleveraged longs; cascade risk</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Options Skew (25-delta)</td>
+            <td style="font-size: 12px;">Calls over puts = market paying for upside</td>
+            <td style="font-size: 12px;">Puts over calls = hedging / fear dominant</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">Spot ETF Daily Flows</td>
+            <td style="font-size: 12px;">Sustained inflows (&gt;$500M/day)</td>
+            <td style="font-size: 12px;">Outflows &gt;3 days = institutional de-risking</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">BTC vs. TOTAL crypto</td>
+            <td style="font-size: 12px;">BTC dominance rising = flight to quality within crypto</td>
+            <td style="font-size: 12px;">Alt outperformance = late-stage speculation</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500;">MSTR premium/discount</td>
+            <td style="font-size: 12px;">Premium to NAV = retail/levered enthusiasm</td>
+            <td style="font-size: 12px;">Discount to NAV = de-risking / deleveraging</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <!-- Macro Regimes for BTC -->
+      <div class="card">
+        <p class="card-title">BTC Performance by Macro Regime</p>
+        <table>
+          <thead><tr><th>Regime</th><th>BTC Behavior</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-teal">Goldilocks</span></td>
+              <td style="font-size: 12px;">Strong bull — liquidity + risk appetite both high. Best sustained uptrend.</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-amber">Overheat (rates rising)</span></td>
+              <td style="font-size: 12px;">Mixed → bearish. Real rates rising = BTC headwind. Often peaks with growth.</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">Stagflation</span></td>
+              <td style="font-size: 12px;">Very bearish. No growth, no liquidity, inflation = real rate squeeze.</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-purple">Recession (Fed cutting)</span></td>
+              <td style="font-size: 12px;">Initially down with equities, then strong recovery as liquidity floods back.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Proxy Stocks -->
+      <div class="card">
+        <p class="card-title">BTC Proxy Stocks &amp; Cross-Collateralization</p>
+        <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">For TradFi exposure to BTC macro thesis:</p>
+        <table>
+          <thead><tr><th>Name</th><th>Type</th><th>BTC Beta</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight: 500;">MSTR</td><td style="font-size: 12px;">BTC treasury company, ~$9B debt issued to buy BTC</td><td><span class="badge badge-amber">~2.5x</span></td></tr>
+            <tr><td style="font-weight: 500;">COIN (Coinbase)</td><td style="font-size: 12px;">Exchange — fees leverage volume &amp; volatility</td><td><span class="badge badge-amber">~1.5–2x</span></td></tr>
+            <tr><td style="font-weight: 500;">Miners (RIOT, MARA)</td><td style="font-size: 12px;">Operating leverage on BTC price + hashrate</td><td><span class="badge badge-red">3–4x+</span></td></tr>
+          </tbody>
+        </table>
+        <hr class="divider">
+        <p style="font-size: 12px; color: var(--color-text-muted);"><strong>Cross-collateralization risk:</strong> Same BTC used as collateral across multiple lending/borrowing positions. In a crash, forced selling cascades — same mechanism as 2022 Luna/3AC collapse.</p>
+      </div>
+    </div>
+
+    <!-- 5-Step BTC Strategic Framework -->
+    <div class="card">
+      <p class="card-title">5-Step Bitcoin Strategic Framework</p>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="checklist-item">
+          <div class="check-num">1</div>
+          <div class="check-body">
+            <p class="check-title">Assess Global Liquidity Regime</p>
+            <p class="check-desc">Is net Fed liquidity rising? Is global M2 (USD-adjusted) expanding? Are real rates falling? → Determines macro tailwind or headwind.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">2</div>
+          <div class="check-body">
+            <p class="check-title">Read Spot ETF Flow Data</p>
+            <p class="check-desc">Daily inflows from IBIT/FBTC = institutional demand. Sustained $500M+/day inflows = structural bid. Outflows = de-risking event.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">3</div>
+          <div class="check-body">
+            <p class="check-title">Check Futures Positioning</p>
+            <p class="check-desc">OI + funding rates together. High OI + high funding = crowded long = liquidation risk. Low/negative funding = potential for squeeze rally.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">4</div>
+          <div class="check-body">
+            <p class="check-title">Read Options Market Skew</p>
+            <p class="check-desc">25-delta call/put skew shows where smart money is hedging. Calls bid = upside expected. Puts bid = downside protection being bought. Use for timing entries.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">5</div>
+          <div class="check-body">
+            <p class="check-title">Monitor BTC Dominance &amp; Cross-Asset Correlation</p>
+            <p class="check-desc">When BTC dominance rises, it signals quality rotation within crypto (risk-off within risk-on). Watch correlation with NDX — when they diverge, BTC is often leading.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: CONSUMER -->
+  <div id="consumer" class="section">
+    <p class="section-title">Consumer Macroeconomic Playbook</p>
+    <p class="section-subtitle">Debt service ratio, permanent income hypothesis, and spending behavior by macro regime</p>
+
+    <!-- Consumer Framework -->
+    <div class="card">
+      <p class="card-title">What Drives Consumer Spending</p>
+      <div class="grid-3">
+        <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 6px;">Permanent Income Hypothesis (PIH)</p>
+          <p style="font-size: 12px; color: var(--color-teal-600);">Consumers smooth spending based on expected lifetime income, not just current income. Temporary windfalls (tax rebates, bonuses) are largely saved. Permanent income changes (job loss, wage growth) drive real spending shifts.</p>
+          <p style="font-size: 12px; color: var(--color-teal-600); margin-top: 6px;"><em>Implication: One-off fiscal stimulus has diminishing multiplier; structural wage growth matters more.</em></p>
+        </div>
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 6px;">Debt Service Ratio (DSR)</p>
+          <p style="font-size: 12px; color: var(--color-blue-600);">DSR = (Mortgage + consumer debt payments) / Disposable income. When DSR rises above ~15%, discretionary spending compresses. High DSR = household balance sheets stretched = consumer-led recession risk.</p>
+          <p style="font-size: 12px; color: var(--color-blue-600); margin-top: 6px;"><em>Watch: Fed's Household DSR series. Mortgage DSR vs. consumer credit DSR tell different stories.</em></p>
+        </div>
+        <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-amber-800); margin-bottom: 6px;">Wealth Effect</p>
+          <p style="font-size: 12px; color: var(--color-amber-600);">Rising asset prices (housing, equities) boost consumer confidence and willingness to spend. Roughly: $1 of stock wealth = $0.03–0.05 in spending; $1 of housing wealth = $0.05–0.08 in spending (housing wealth effect is stronger).</p>
+          <p style="font-size: 12px; color: var(--color-amber-600); margin-top: 6px;"><em>Why housing > stocks: More households own homes; housing feels more "permanent" to consumers.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consumer Spending by Regime -->
+    <div class="card">
+      <p class="card-title">Consumer Behavior by Macro Regime</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Regime</th>
+            <th>Consumer Behavior</th>
+            <th>Spending Pattern</th>
+            <th>Investment Implication</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-teal">Goldilocks</span></td>
+            <td style="font-size: 12px;">Employment strong, wages rising, credit available, asset prices up</td>
+            <td style="font-size: 12px;">Broad-based spending growth. Services + discretionary lead.</td>
+            <td style="font-size: 12px;"><span class="badge badge-green">↑ Consumer Discretionary</span> <span class="badge badge-green">↑ Financials</span></td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-amber">Overheat</span></td>
+            <td style="font-size: 12px;">Real wages eroded by inflation. Credit tightening. Housing affordability falls.</td>
+            <td style="font-size: 12px;">Spending rotates to necessities. Discretionary weakens. Credit card balances build.</td>
+            <td style="font-size: 12px;"><span class="badge badge-green">↑ Consumer Staples</span> <span class="badge badge-red">↓ Discretionary</span></td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-red">Stagflation</span></td>
+            <td style="font-size: 12px;">Double squeeze: real income falling + job insecurity. DSR elevated. Savings depleted.</td>
+            <td style="font-size: 12px;">Spending collapses in discretionary. "Trading down" behavior. Dollar store outperforms.</td>
+            <td style="font-size: 12px;"><span class="badge badge-red">↓ Most retail</span> <span class="badge badge-green">↑ Discount/value</span></td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-purple">Recession</span></td>
+            <td style="font-size: 12px;">Unemployment rising. Precautionary saving. Wealth effect reverses (equities + housing down).</td>
+            <td style="font-size: 12px;">Sharp pullback in big-ticket items (autos, appliances). Essential spending resilient.</td>
+            <td style="font-size: 12px;"><span class="badge badge-green">↑ Staples, Healthcare</span> <span class="badge badge-red">↓ Auto, Housing</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Key Consumer Indicators -->
+    <div class="card">
+      <p class="card-title">Key Consumer Indicators to Track</p>
+      <div class="grid-4">
+        <div class="metric-card">
+          <p class="metric-label">Household DSR</p>
+          <p style="font-size: 13px; font-weight: 500;">&gt;15% = stress zone</p>
+          <p class="metric-note">Fed Z.1 / Flow of Funds data</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Real Wage Growth</p>
+          <p style="font-size: 13px; font-weight: 500;">Nominal wages − CPI</p>
+          <p class="metric-note">Negative = spending squeeze despite job growth</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Personal Savings Rate</p>
+          <p style="font-size: 13px; font-weight: 500;">Falling = spending from savings</p>
+          <p class="metric-note">Unsustainable below 3–4%</p>
+        </div>
+        <div class="metric-card">
+          <p class="metric-label">Credit Card Delinquency</p>
+          <p style="font-size: 13px; font-weight: 500;">Rising = stress building</p>
+          <p class="metric-note">Leading indicator of consumer slowdown</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consumer Credit Cycle -->
+    <div class="card">
+      <p class="card-title">Consumer Credit Cycle &amp; Retail Sector Rotation</p>
+      <div class="grid-2">
+        <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 8px;">Credit Expansion Phase</p>
+          <div style="font-size: 12px; color: var(--color-blue-700); display: flex; flex-direction: column; gap: 4px;">
+            <div>→ FICO scores rising, delinquencies low</div>
+            <div>→ HELOC utilization rising (home equity extraction)</div>
+            <div>→ "Buy Now Pay Later" (BNPL) adoption rising = credit demand pull-forward</div>
+            <div>→ Auto loan originations strong, subprime auto expanding</div>
+            <div style="margin-top: 6px;"><strong>Watch:</strong> Credit card revolving balances — sustained growth signals spending beyond income</div>
+          </div>
+        </div>
+        <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 1rem;">
+          <p style="font-size: 13px; font-weight: 500; color: var(--color-red-800); margin-bottom: 8px;">Credit Contraction Phase</p>
+          <div style="font-size: 12px; color: var(--color-red-700); display: flex; flex-direction: column; gap: 4px;">
+            <div>→ Delinquency rates rising (30/60/90 day)</div>
+            <div>→ Bank lending standards tightening (Fed SLOOS)</div>
+            <div>→ Charge-off rates rising at banks</div>
+            <div>→ HELOC access shrinking as home equity values fall</div>
+            <div style="margin-top: 6px;"><strong>Watch:</strong> Fed Senior Loan Officer Opinion Survey (SLOOS) — leading indicator of credit availability</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: THESIS CHECKLIST -->
+  <div id="thesis" class="section">
+    <p class="section-title">Building a Falsifiable Investment Thesis</p>
+    <p class="section-subtitle">7-step scientific framework and 9-point checklist for rigorous macro investing</p>
+
+    <!-- Falsifiable Thesis Framework -->
+    <div class="card">
+      <p class="card-title">The 7-Step Falsifiable Thesis Framework</p>
+      <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 1rem;">A great macro trade is a <em>scientific hypothesis</em> — it can be proven wrong. If you can't articulate what would disprove your thesis, it's not a thesis; it's a bias.</p>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="checklist-item">
+          <div class="check-num">1</div>
+          <div class="check-body">
+            <p class="check-title">State the Core Claim</p>
+            <p class="check-desc">One clear sentence: "I believe X will happen because Y." The more specific the better. Vague theses ("the market is overvalued") can't be falsified.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">2</div>
+          <div class="check-body">
+            <p class="check-title">Identify the Falsifying Conditions</p>
+            <p class="check-desc">What data or events would prove this wrong? Write them down before entering the trade. If you can't answer this, don't trade.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">3</div>
+          <div class="check-body">
+            <p class="check-title">Assign Probabilities &amp; Scenarios</p>
+            <p class="check-desc">What is the base case probability? What are the bear/bull alternative scenarios? How does the P&amp;L look under each? Avoid binary thinking.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">4</div>
+          <div class="check-body">
+            <p class="check-title">Define the Catalyst</p>
+            <p class="check-desc">What event or data release will cause the market to reprice? Without a catalyst, even a correct thesis can be a losing trade (timing is everything in macro).</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">5</div>
+          <div class="check-body">
+            <p class="check-title">Size for the Worst Case</p>
+            <p class="check-desc">Position size should reflect the scenario where you're wrong. Never size where a single loss wipes you out. Risk the amount you can explain and recover from.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">6</div>
+          <div class="check-body">
+            <p class="check-title">Set a Time Horizon</p>
+            <p class="check-desc">When should the thesis play out? If the catalyst doesn't materialize by then, reassess — don't just hold and hope. Time horizon defines carry cost and patience budget.</p>
+          </div>
+        </div>
+        <div class="checklist-item">
+          <div class="check-num">7</div>
+          <div class="check-body">
+            <p class="check-title">Monitor and Update</p>
+            <p class="check-desc">Systematically track each data point that bears on your thesis. When falsifying conditions appear, exit. Don't fall in love with positions — fall in love with the process.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9-Point Checklist -->
+    <div class="card">
+      <p class="card-title">Pre-Trade 9-Point Checklist</p>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Question</th><th>Why It Matters</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">1</td>
+            <td style="font-size: 12px;"><strong>What is the macro regime?</strong> (Growth ↑/↓, Inflation ↑/↓)</td>
+            <td style="font-size: 12px;">Regime determines which assets have structural tailwinds. Don't fight the regime.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">2</td>
+            <td style="font-size: 12px;"><strong>What is the global liquidity direction?</strong> (Fed + ECB + PBoC balance sheets)</td>
+            <td style="font-size: 12px;">Liquidity is the tide that lifts/sinks all boats. Even correct theses fail in a liquidity squeeze.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">3</td>
+            <td style="font-size: 12px;"><strong>What does the yield curve say?</strong> (Shape + direction of change)</td>
+            <td style="font-size: 12px;">The curve is the market's consensus on future growth and policy. Respect it or have strong reason to fade it.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">4</td>
+            <td style="font-size: 12px;"><strong>What is the USD doing?</strong> (Strong/weak, trend direction)</td>
+            <td style="font-size: 12px;">USD direction drives EM capital flows, commodity prices, and global risk appetite. Strong USD = global tightening.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">5</td>
+            <td style="font-size: 12px;"><strong>What is already priced in?</strong> (Futures, options, positioning)</td>
+            <td style="font-size: 12px;">Markets move on surprise, not facts. Even a correct view loses if it's consensus. Check CFTC positioning.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">6</td>
+            <td style="font-size: 12px;"><strong>What is the specific catalyst and timing?</strong></td>
+            <td style="font-size: 12px;">A thesis without a catalyst is a fantasy. NFP? FOMC? CPI? Earnings? Define the trigger.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">7</td>
+            <td style="font-size: 12px;"><strong>What would prove me wrong?</strong> (The falsifier)</td>
+            <td style="font-size: 12px;">Write this down. When it happens, act immediately. Most traders ignore falsifying conditions. Don't.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">8</td>
+            <td style="font-size: 12px;"><strong>Is the risk/reward at least 2:1?</strong> (Max gain / max loss)</td>
+            <td style="font-size: 12px;">Even at 50% hit rate, 2:1 R/R produces consistent long-run profits. Never take trades below 1.5:1.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--color-purple-700);">9</td>
+            <td style="font-size: 12px;"><strong>What is the carry cost?</strong> (Positive or negative while waiting)</td>
+            <td style="font-size: 12px;">Negative carry trades need to pay off fast or they bleed P&amp;L. Know your patience budget before entry.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Common Thesis Failures -->
+    <div class="card">
+      <p class="card-title">Common Thesis Failures &amp; How to Avoid Them</p>
+      <div class="grid-2">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: var(--color-red-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-red-800); margin-bottom: 3px;">Narrative Without Data</p>
+            <p style="font-size: 12px; color: var(--color-red-700);">A compelling story that isn't anchored in measurable indicators. Fix: require at least 3 specific data series that must confirm the view before sizing up.</p>
+          </div>
+          <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-amber-800); margin-bottom: 3px;">Ignoring the Regime</p>
+            <p style="font-size: 12px; color: var(--color-amber-700);">Correct fundamental view, wrong macro backdrop. E.g., being long growth stocks during Stagflation because "earnings are good." The regime overrides individual fundamentals.</p>
+          </div>
+          <div style="background: var(--color-purple-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-purple-800); margin-bottom: 3px;">No Exit Plan</p>
+            <p style="font-size: 12px; color: var(--color-purple-700);">Entering with a thesis but no defined exit — neither profit target nor stop. Result: holding through full reversal while convincing yourself the thesis is "still valid."</p>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: var(--color-blue-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-blue-800); margin-bottom: 3px;">Confusing Correlation With Causation</p>
+            <p style="font-size: 12px; color: var(--color-blue-700);">Two things moved together last cycle. They may not next cycle if the transmission mechanism has changed (e.g., stock-bond correlation regime shift in high inflation).</p>
+          </div>
+          <div style="background: var(--color-teal-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-teal-800); margin-bottom: 3px;">Anchoring to Entry Price</p>
+            <p style="font-size: 12px; color: var(--color-teal-700);">Defending a position because you're underwater. The market doesn't care where you entered. Re-evaluate: would you put this trade on today at current levels? If no, exit.</p>
+          </div>
+          <div style="background: var(--color-amber-50); border-radius: var(--radius-md); padding: 10px 12px;">
+            <p style="font-size: 13px; font-weight: 500; color: var(--color-amber-800); margin-bottom: 3px;">Sizing for the Best Case</p>
+            <p style="font-size: 12px; color: var(--color-amber-700);">Position sized as if the bull case is guaranteed. When the base case or bear case materializes, losses exceed the budget. Always size for the downside scenario.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+<script>
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
