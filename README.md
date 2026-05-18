@@ -1,5 +1,7 @@
 # Capital Flows Macro Dashboard
 
+**🌐 Live: [capital-flows-primer.netlify.app](https://capital-flows-primer.netlify.app/)**
+
 An interactive, single-file HTML dashboard that synthesizes the **macroeconomic primers published by [Capital Flows Research](https://www.capitalflowsresearch.com/)** into one navigable reference. Designed as a personal study tool for understanding global capital flows, interest rates, FX dynamics, the credit cycle, and how they all interact with equity markets.
 
 > **All concepts, frameworks, and insights in this dashboard are credited to [Capital Flows Research](https://www.capitalflowsresearch.com/). Read the source primers at [capitalflowsresearch.com/p/research-synthesis-direction-of-capital](https://www.capitalflowsresearch.com/p/research-synthesis-direction-of-capital).** This project is a personal synthesis for study purposes only — no affiliation.
@@ -46,7 +48,7 @@ All data updates daily (D-1 lag). The DXY field uses today's ECB fixing. No API 
 
 ### Hosted version
 
-(If deployed) Open the Netlify URL — works on any device with a modern browser.
+**👉 [capital-flows-primer.netlify.app](https://capital-flows-primer.netlify.app/)** — works on any device with a modern browser. Live data updates daily.
 
 ### Local version
 
