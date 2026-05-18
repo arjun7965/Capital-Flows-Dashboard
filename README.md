@@ -93,6 +93,15 @@ The primer PDFs themselves are **not** committed — they're copyrighted Capital
 
 ---
 
+## Privacy &amp; Data
+
+When you load the dashboard, your browser makes anonymous requests to a few public services to fetch live market data:
+
+- **[FRED](https://fred.stlouisfed.org)** (St. Louis Fed) — via the public CORS proxies **[api.codetabs.com](https://api.codetabs.com)** (primary) and **[api.allorigins.win](https://api.allorigins.win)** (fallback) — for Treasury yields, VIX, and SOFR/EFFR overnight rates
+- **[Frankfurter](https://api.frankfurter.dev)** — for ECB reference FX rates used to compute the ICE DXY
+
+The dashboard itself collects no analytics, sets no cookies, and never sends any personal data to anyone. The third-party services above could in principle log your IP plus the public market-data URL requested — same as visiting any site that calls public APIs. No login or registration is involved.
+
 ## Disclaimer
 
 This is a personal study tool for understanding macro concepts. **It is not investment advice.** Asset suggestions, regime mappings, and tactical rules are summarized from published research and should not be acted on without independent analysis. All views and frameworks belong to [Capital Flows Research](https://www.capitalflowsresearch.com/); any synthesis errors are mine.

@@ -1,0 +1,38 @@
+# Netlify configuration — https://docs.netlify.com/configure-builds/file-based-configuration/
+#
+# Security headers applied to every served route. The dashboard has no user
+# input, no auth, and no eval/dynamic code, so the surface area for attack is
+# essentially zero — these headers are defense-in-depth.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Content Security Policy
+    # - default-src 'self'     : only same-origin resources by default
+    # - script-src 'self' 'unsafe-inline' : allow inline <script> blocks (the dashboard's JS lives inline; no external scripts)
+    # - style-src  'self' 'unsafe-inline' : allow inline <style> and style="" attributes (same reason)
+    # - connect-src whitelist  : only these origins may be fetched at runtime (the live data services)
+    # - img-src 'self' data:   : same-origin images plus inline data URIs (none currently, defensive)
+    # - frame-src 'none'       : nothing may be embedded in an iframe on this page
+    # - object-src 'none'      : no Flash/Java/etc. plugins
+    # - base-uri 'self'        : prevent base-tag injection
+    # - form-action 'self'     : no forms anyway, but lock it down
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.codetabs.com https://api.allorigins.win https://api.frankfurter.dev; img-src 'self' data:; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
+
+    # Prevent the site being framed by other origins (clickjacking defense)
+    X-Frame-Options = "DENY"
+
+    # Prevent MIME-type sniffing attacks
+    X-Content-Type-Options = "nosniff"
+
+    # Limit what URL info is sent to external sites when the user clicks links
+    # (e.g. opening CME FedWatch — they only learn the origin, not the full URL)
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Explicitly deny unused browser APIs. Defensive — nothing tries to use these,
+    # but if a future supply-chain-style attack injected code, these wouldn't work.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), interest-cohort=()"
+
+    # Cross-Origin policies — prevent cross-origin window references
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
