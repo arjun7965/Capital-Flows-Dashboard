@@ -73,7 +73,7 @@ with open('/path/to/capital_flows_dashboard.html', 'w') as f:
 
 **File path:** Use the absolute path to `capital_flows_dashboard.html` in your local checkout (e.g. `<your-folder>/capital_flows_dashboard.html` on macOS/Linux or `<your-folder>\capital_flows_dashboard.html` on Windows). In Cowork sessions the path is typically `/sessions/<session-id>/mnt/<repo-name>/capital_flows_dashboard.html` — use `ls /sessions/` to find the current session ID.
 
-**Pattern: write a small Python patch script, run it, delete it.** Anchor on a unique substring with `assert anchor in content` and `assert content.count(anchor) == 1` so the script fails loudly if the file shape has drifted.
+**Pattern: write a small Python patch script, run it, delete it, then run the validator.** Anchor on a unique substring with `assert anchor in content` and `assert content.count(anchor) == 1` so the script fails loudly if the file shape has drifted. **After every edit, run `python scripts/validate_dashboard.py`** (see next section).
 
 **Key insertion anchors:**
 - CSS additions → before `</style>`
@@ -84,11 +84,39 @@ with open('/path/to/capital_flows_dashboard.html', 'w') as f:
 
 ---
 
+## CRITICAL: Validate After Every Edit
+
+**Run `python scripts/validate_dashboard.py` after every change to `capital_flows_dashboard.html`.** Exits 0 on success, 1 on any failure. No third-party dependencies (stdlib only).
+
+The same script runs automatically as a guard rail, but you should still run it locally so you catch issues during the edit session instead of after pushing:
+
+- **GitHub Action** (`.github/workflows/validate.yml`) — runs on every push and PR; failing checks show a red ✗ on the commit
+- **Netlify build gate** (`netlify.toml` `[build] command`) — runs during deploy; failing checks abort the deploy so the previous good version stays live
+
+### What the validator catches (the bug classes we've actually hit)
+
+| Check | Caught real bug |
+|---|---|
+| Per-section `<div>` balance | The "Regime Transition card visible on every tab" orphan-card bug (May 2026) |
+| All `var(--X)` references resolve | The `-700` color bug — 53 unreadable elements |
+| Color palette completeness in both themes | Prevents future `-700`-style regressions |
+| JS `getElementById` references match HTML ids | Caught a stray `var(--color-orange-50, fallback)` undefined ref |
+| Nav buttons ↔ sections wired correctly | Catches unreachable tabs or orphan sections |
+| Critical data-source URLs present | Prevents accidental removal of FRED/Frankfurter/codetabs/CME wiring |
+
+### Extending the validator
+
+If you ever hit a new bug class not covered above, add a check to `scripts/validate_dashboard.py`. Each check is ~10 lines following the same pattern: regex match → assert condition → call `ok()` or `fail()`. The existing 6 checks are good templates.
+
+---
+
 ## CRITICAL: CSS Color Variant Rule
 
-The dashboard's color palette defines `-50, -200, -600, -700, -800` for each color family (purple, teal, coral, blue, amber, red, green, gray). **The `-700` variants are aliased to `-800`** because the HTML references `-700` in ~53 places but the original CSS only defined `-50/-200/-600/-800`. Without `-700` definitions, CSS variables fall back to inherited color, causing unreadable dark-on-dark text (USD Recycling Loop, Trading Implication boxes, etc.).
+The dashboard's color palette defines `-50, -200, -600, -700, -800` for each color family (purple, teal, coral, blue, amber, red, green). **Gray is the exception — it uses `-100` instead of `-200`** (see `--color-gray-100` definitions in the light and dark theme blocks). The validator knows about this deviation.
 
-**If you ever rebuild the color palette, you MUST include `-700` definitions for every color family in both light and dark theme blocks.** See [capital_flows_dashboard.html:16-23](capital_flows_dashboard.html:16) (light) and [:36-43](capital_flows_dashboard.html:36) (dark).
+**The `-700` variants are aliased to `-800`** because the HTML references `-700` in ~53 places but the original CSS only defined `-50/-200/-600/-800`. Without `-700` definitions, CSS variables fall back to inherited color, causing unreadable dark-on-dark text (USD Recycling Loop, Trading Implication boxes, etc.).
+
+**If you ever rebuild the color palette, you MUST include `-700` definitions for every color family in both light and dark theme blocks.** See [capital_flows_dashboard.html:16-23](capital_flows_dashboard.html:16) (light) and [:36-43](capital_flows_dashboard.html:36) (dark). The validator will refuse to pass if any required shade is missing from either theme.
 
 ---
 
