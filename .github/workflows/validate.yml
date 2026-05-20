@@ -1,0 +1,30 @@
+name: Validate Dashboard
+
+# Runs on every push and pull request to dev. Blocks merges/deploys if
+# structural checks (see scripts/validate_dashboard.py) detect any of:
+#   - orphan content outside section wrappers
+#   - undefined CSS variable references
+#   - broken JS getElementById references
+#   - missing critical data-source URLs
+#   - file size catastrophes
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run structural validator
+        run: python scripts/validate_dashboard.py

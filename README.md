@@ -84,6 +84,24 @@ The primer PDFs themselves are **not** committed — they're copyrighted Capital
 
 ---
 
+## Development
+
+### Validate structural integrity before pushing
+
+A Python script catches the bug classes that have actually hit this project (orphan content, undefined CSS variables, broken JS references, missing data-source URLs, etc.):
+
+```bash
+python scripts/validate_dashboard.py
+```
+
+Exits 0 on success, 1 on any failure. **No third-party dependencies** — Python 3.x stdlib only.
+
+The same script runs automatically via:
+- **GitHub Action** ([`.github/workflows/validate.yml`](.github/workflows/validate.yml)) on every push and PR — failing checks show a red ✗ on the commit in GitHub
+- **Netlify build** ([`netlify.toml`](netlify.toml)) on every deploy — failing checks abort the deploy, previous version stays live
+
+If you add a new section, new CSS variable, or new data source, the validator will likely need a small update. See the inline comments in `scripts/validate_dashboard.py`.
+
 ## Tech notes
 
 - **Single HTML file** — all CSS, JavaScript, and content inline. No build process, no dependencies, no framework.

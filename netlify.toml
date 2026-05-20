@@ -1,5 +1,12 @@
 # Netlify configuration — https://docs.netlify.com/configure-builds/file-based-configuration/
-#
+
+# Build step: run the structural validator before deploying. If any check
+# fails (orphan content, undefined CSS vars, broken JS refs, missing data
+# sources, etc.) the deploy is aborted and the previous version stays live.
+[build]
+  command = "python scripts/validate_dashboard.py"
+  publish = "."
+
 # Security headers applied to every served route. The dashboard has no user
 # input, no auth, and no eval/dynamic code, so the surface area for attack is
 # essentially zero — these headers are defense-in-depth.
