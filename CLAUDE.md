@@ -235,9 +235,9 @@ The selector must be `#nav button` not `.tab-bar button` — the nav element has
 ---
 
 ## Stats
-- **Total cards:** ~65 (after this session — Bitcoin +3, Consumer +4, Liquidity +3, Thesis +4, Rates +2; original 51)
+- **Total cards:** ~69 (2026-05-31 primer cross-check — Regime +1, Liquidity +2, FX +1; prior session 65; original 51)
 - **Total sections:** 9 (8 primer + 1 regime check + 1 cheat sheet = displayed as 10 tabs)
-- **File size:** ~230KB
+- **File size:** ~251KB
 - **Live strip fields:** 7 (10Y, 3M, 3M10s, VIX, DXY, SOFR, SOFR−EFFR)
 
 ## Project Goal
