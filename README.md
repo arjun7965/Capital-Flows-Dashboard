@@ -1,5 +1,7 @@
 # Capital Flows Macro Dashboard
 
+[![Validate Dashboard](https://github.com/arjun7965/Capital-Flows-Dashboard/actions/workflows/validate.yml/badge.svg?branch=dev)](https://github.com/arjun7965/Capital-Flows-Dashboard/actions/workflows/validate.yml?query=branch%3Adev)
+
 **🌐 Live: [capital-flows-primer.netlify.app](https://capital-flows-primer.netlify.app/)**
 
 An interactive, single-file HTML dashboard that synthesizes the **macroeconomic primers published by [Capital Flows Research](https://www.capitalflowsresearch.com/)** into one navigable reference. Designed as a personal study tool for understanding global capital flows, interest rates, FX dynamics, the credit cycle, and how they all interact with equity markets.
