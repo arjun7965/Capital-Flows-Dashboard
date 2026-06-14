@@ -4,7 +4,7 @@
 # fails (orphan content, undefined CSS vars, broken JS refs, missing data
 # sources, etc.) the deploy is aborted and the previous version stays live.
 [build]
-  command = "python scripts/validate_dashboard.py && node --test scripts/test_market_data.mjs"
+  command = "python scripts/validate_dashboard.py && npm test"
   publish = "."
 
 [functions]

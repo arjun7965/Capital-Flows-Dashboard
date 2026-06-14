@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test scripts/test_market_data.mjs",
+    "test": "node --test scripts/test_market_data.mjs scripts/test_regime_check.mjs",
     "test:browser": "playwright test"
   },
   "devDependencies": {

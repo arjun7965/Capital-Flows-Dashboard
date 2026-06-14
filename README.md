@@ -27,7 +27,7 @@ An interactive, single-file HTML dashboard that synthesizes the **macroeconomic 
 
 ### 2 tool tabs
 
-- **⚡ Regime Check** — 6-question diagnostic that maps current conditions to a macro regime and overlays a plumbing/funding-stress rating with tail-hedge recommendations
+- **⚡ Regime Check** — 6-question diagnostic that maps current conditions to a macro regime, shows tied leaders as a mixed/transition state, and overlays a plumbing/funding-stress rating with tail-hedge recommendations
 - **📋 Cheat Sheet** — Condensed reference: regime→asset map, indicator thresholds, cross-asset rules, duration vs credit twin pillar map, 11-point pre-trade checklist
 
 ### Live data strip
@@ -101,11 +101,13 @@ A Python script catches the bug classes that have actually hit this project (orp
 python scripts/validate_dashboard.py
 ```
 
-Exits 0 on success, 1 on any failure. The market-data adapter also has dependency-free Node tests:
+Exits 0 on success, 1 on any failure. The market-data adapter and Regime Check engine also have dependency-free Node tests:
 
 ```bash
-node --test scripts/test_market_data.mjs
+npm test
 ```
+
+The Regime Check suite exhaustively covers all 1,280 scoring-input combinations. Tied leaders receive 0% separation confidence and render a conditional mixed/transition playbook instead of resolving by object order.
 
 The same script runs automatically via:
 - **GitHub Action** ([`.github/workflows/validate.yml`](.github/workflows/validate.yml)) on every push and PR — failing checks show a red ✗ on the commit in GitHub

@@ -330,6 +330,17 @@
   margin-bottom: 4px;
 }
 .rc-confidence { font-size: 13px; color: #8b949e; margin-bottom: 20px; }
+.rc-ambiguity {
+  display: none;
+  margin: -10px 0 20px;
+  padding: 10px 14px;
+  border-left: 3px solid #bc8cff;
+  border-radius: 6px;
+  background: rgba(188,140,255,0.10);
+  color: #c9d1d9;
+  font-size: 13px;
+}
+.rc-ambiguity.show { display: block; }
 .rc-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
 .rc-block { background: #161b22; border-radius: 8px; padding: 14px; }
 .rc-block h4 { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
@@ -2846,6 +2857,7 @@
     <div id="rc-result">
       <div class="rc-regime-banner" id="rc-banner"></div>
       <div class="rc-confidence" id="rc-conf"></div>
+      <div class="rc-ambiguity" id="rc-ambiguity"></div>
       <div id="rc-stability" style="margin-top:10px; padding:10px 14px; border-radius:8px; display:none; font-size:13px;"></div>
       <div class="rc-cols">
         <div class="rc-block rc-own">
@@ -3197,6 +3209,80 @@ async function fetchLiveData() {
 }
 
 // ── Regime Check Engine ───────────────────────────────────────────────────
+// REGIME ENGINE START - kept pure so scripts/test_regime_check.mjs can test it.
+const REGIME_ORDER = ['goldilocks', 'overheat', 'stagflation', 'recession'];
+const REGIME_NAMES = {
+  goldilocks: 'Goldilocks',
+  overheat: 'Overheat',
+  stagflation: 'Stagflation',
+  recession: 'Recession'
+};
+const REGIME_INPUTS = {
+  growth: ['up', 'ok', 'down', 'contraction'],
+  inflation: ['high', 'falling', 'target', 'low'],
+  fed: ['hiking', 'hold-high', 'pivoting', 'cutting', 'qe'],
+  curve: ['steep', 'flat', 'inverted', 'disinverting'],
+  credit: ['tight', 'normal', 'widening', 'blowout']
+};
+
+function scoreRegime({ growth, inflation, fed, curve, credit }) {
+  const scores = { goldilocks: 0, overheat: 0, stagflation: 0, recession: 0 };
+
+  if (growth === 'up')          { scores.goldilocks += 2; scores.overheat += 2; }
+  if (growth === 'ok')          { scores.goldilocks += 1; scores.overheat += 1; }
+  if (growth === 'down')        { scores.stagflation += 2; scores.recession += 2; }
+  if (growth === 'contraction') { scores.recession += 4; scores.stagflation += 1; }
+
+  if (inflation === 'high')     { scores.overheat += 3; scores.stagflation += 3; }
+  if (inflation === 'falling')  { scores.goldilocks += 2; scores.overheat += 1; }
+  if (inflation === 'target')   { scores.goldilocks += 2; scores.recession += 1; }
+  if (inflation === 'low')      { scores.recession += 3; scores.goldilocks += 1; }
+
+  if (fed === 'hiking')         { scores.overheat += 2; scores.stagflation += 1; }
+  if (fed === 'hold-high')      { scores.overheat += 1; scores.stagflation += 2; scores.recession += 1; }
+  if (fed === 'pivoting')       { scores.goldilocks += 1; scores.recession += 2; }
+  if (fed === 'cutting')        { scores.goldilocks += 2; scores.recession += 2; }
+  if (fed === 'qe')             { scores.recession += 3; }
+
+  if (curve === 'steep')        { scores.goldilocks += 2; scores.overheat += 1; }
+  if (curve === 'flat')         { scores.overheat += 1; scores.stagflation += 1; }
+  if (curve === 'inverted')     { scores.recession += 2; scores.stagflation += 1; }
+  if (curve === 'disinverting') { scores.recession += 3; }
+
+  if (credit === 'tight')       { scores.goldilocks += 2; scores.overheat += 1; }
+  if (credit === 'normal')      { scores.goldilocks += 1; scores.overheat += 1; }
+  if (credit === 'widening')    { scores.stagflation += 1; scores.recession += 2; }
+  if (credit === 'blowout')     { scores.recession += 4; scores.stagflation += 1; }
+
+  return scores;
+}
+
+function diagnoseRegime(inputs) {
+  Object.entries(REGIME_INPUTS).forEach(([key, validValues]) => {
+    if (!validValues.includes(inputs[key])) {
+      throw new RangeError(`Invalid ${key} value: ${inputs[key]}`);
+    }
+  });
+
+  const scores = scoreRegime(inputs);
+  const maxScore = Math.max(...Object.values(scores));
+  const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+  const leaders = REGIME_ORDER.filter(regime => scores[regime] === maxScore);
+  const rankedScores = Object.values(scores).sort((a, b) => b - a);
+  const lead = leaders.length === 1 ? maxScore - rankedScores[1] : 0;
+
+  return {
+    scores,
+    leaders,
+    isTie: leaders.length > 1,
+    maxScore,
+    totalScore,
+    lead,
+    confidence: leaders.length > 1 ? 0 : Math.round((lead / maxScore) * 100)
+  };
+}
+// REGIME ENGINE END
+
 function runRegimeCheck() {
   const growth   = document.getElementById('rc-growth').value;
   const inflation= document.getElementById('rc-inflation').value;
@@ -3210,46 +3296,10 @@ function runRegimeCheck() {
     return;
   }
 
-  // ── Score regime ──────────────────────────────────────────────────────────
-  let scores = { goldilocks: 0, overheat: 0, stagflation: 0, recession: 0 };
+  // ── Score and classify regime ─────────────────────────────────────────────
+  const diagnosis = diagnoseRegime({ growth, inflation, fed, curve, credit });
 
-  // Growth
-  if (growth === 'up')          { scores.goldilocks += 2; scores.overheat += 2; }
-  if (growth === 'ok')          { scores.goldilocks += 1; scores.overheat += 1; }
-  if (growth === 'down')        { scores.stagflation += 2; scores.recession += 2; }
-  if (growth === 'contraction') { scores.recession += 4; scores.stagflation += 1; }
-
-  // Inflation
-  if (inflation === 'high')     { scores.overheat += 3; scores.stagflation += 3; }
-  if (inflation === 'falling')  { scores.goldilocks += 2; scores.overheat += 1; }
-  if (inflation === 'target')   { scores.goldilocks += 2; scores.recession += 1; }
-  if (inflation === 'low')      { scores.recession += 3; scores.goldilocks += 1; }
-
-  // Fed
-  if (fed === 'hiking')         { scores.overheat += 2; scores.stagflation += 1; }
-  if (fed === 'hold-high')      { scores.overheat += 1; scores.stagflation += 2; scores.recession += 1; }
-  if (fed === 'pivoting')       { scores.goldilocks += 1; scores.recession += 2; }
-  if (fed === 'cutting')        { scores.goldilocks += 2; scores.recession += 2; }
-  if (fed === 'qe')             { scores.recession += 3; }
-
-  // Yield curve
-  if (curve === 'steep')        { scores.goldilocks += 2; scores.overheat += 1; }
-  if (curve === 'flat')         { scores.overheat += 1; scores.stagflation += 1; }
-  if (curve === 'inverted')     { scores.recession += 2; scores.stagflation += 1; }
-  if (curve === 'disinverting') { scores.recession += 3; }
-
-  // Credit
-  if (credit === 'tight')       { scores.goldilocks += 2; scores.overheat += 1; }
-  if (credit === 'normal')      { scores.goldilocks += 1; scores.overheat += 1; }
-  if (credit === 'widening')    { scores.stagflation += 1; scores.recession += 2; }
-  if (credit === 'blowout')     { scores.recession += 4; scores.stagflation += 1; }
-
-  // ── Determine regime ──────────────────────────────────────────────────────
-  const maxScore = Math.max(...Object.values(scores));
-  const totalScore = Object.values(scores).reduce((a,b) => a+b, 0);
-  const regime = Object.keys(scores).find(k => scores[k] === maxScore);
-  const confidence = Math.round((maxScore / totalScore) * 100);
-
+  // ── Build unique or mixed-regime playbook ─────────────────────────────────
   const playbooks = {
     goldilocks: {
       label: '🟢 Goldilocks', color: '#3fb950',
@@ -3293,7 +3343,46 @@ function runRegimeCheck() {
     }
   };
 
-  const pb = playbooks[regime];
+  let pb;
+  if (diagnosis.isTie) {
+    const leaders = diagnosis.leaders.map(regime => ({
+      name: REGIME_NAMES[regime],
+      playbook: playbooks[regime]
+    }));
+    const sharedAvoids = leaders[0].playbook.avoid.filter(item =>
+      leaders.every(({ playbook }) => playbook.avoid.includes(item))
+    );
+    pb = {
+      label: `Mixed / Transition: ${leaders.map(({ name }) => name).join(' + ')}`,
+      color: '#bc8cff',
+      own: [
+        'Transition posture: hold more cash, reduce position size, and wait for confirming data.',
+        ...leaders.map(({ name, playbook }) =>
+          `If ${name} confirms: ${playbook.own.slice(0, 3).join(', ')}`
+        )
+      ],
+      avoid: [
+        'Concentrated bets that require one regime to be definitively correct',
+        'Maximum leverage while growth, inflation, policy, curve, and credit signals conflict',
+        ...(sharedAvoids.length ? [`Shared avoid across leaders: ${sharedAvoids.join(', ')}`] : [])
+      ],
+      watch: leaders.flatMap(({ name, playbook }) =>
+        playbook.watch.map(signal => `${name}: ${signal}`)
+      ),
+      rates: leaders.map(({ name, playbook }) => `${name}: ${playbook.rates}`).join(' | '),
+      fx: leaders.map(({ name, playbook }) => `${name}: ${playbook.fx}`).join(' | '),
+      duration: leaders.map(({ name, playbook }) => `${name}: ${playbook.duration}`).join(' | '),
+      creditPos: leaders.map(({ name, playbook }) => `${name}: ${playbook.creditPos}`).join(' | ')
+    };
+  } else {
+    const playbook = playbooks[diagnosis.leaders[0]];
+    pb = {
+      ...playbook,
+      own: [...playbook.own],
+      avoid: [...playbook.avoid],
+      watch: [...playbook.watch]
+    };
+  }
 
   // ── Stability overlay (the 6th question — plumbing/funding/tail) ──────────
   // Independent of the regime classification. Surfaces tail-scenario warnings
@@ -3337,13 +3426,30 @@ function runRegimeCheck() {
   const stab = stabilityProfiles[plumbing];
 
   // Merge extra watches into the regime playbook's watch list so they appear together
-  pb.watch = pb.watch.concat(stab.extraWatch);
+  const watchItems = pb.watch.concat(stab.extraWatch);
 
   document.getElementById('rc-banner').textContent = pb.label;
   document.getElementById('rc-banner').style.color = pb.color;
+  const leaderText = diagnosis.leaders.map(regime => REGIME_NAMES[regime]).join(' + ');
+  const confidenceDetail = diagnosis.isTie
+    ? `Tied leaders: ${leaderText}`
+    : `Lead over runner-up: ${diagnosis.lead} point${diagnosis.lead === 1 ? '' : 's'}`;
   document.getElementById('rc-conf').textContent =
-    `Confidence: ${confidence}% · Score: ${maxScore}/${totalScore} · ` +
-    `Goldilocks ${scores.goldilocks} | Overheat ${scores.overheat} | Stagflation ${scores.stagflation} | Recession ${scores.recession}`;
+    `Separation confidence: ${diagnosis.confidence}% · ${confidenceDetail} · ` +
+    `Goldilocks ${diagnosis.scores.goldilocks} | Overheat ${diagnosis.scores.overheat} | ` +
+    `Stagflation ${diagnosis.scores.stagflation} | Recession ${diagnosis.scores.recession}`;
+
+  const ambiguityEl = document.getElementById('rc-ambiguity');
+  if (diagnosis.isTie) {
+    ambiguityEl.textContent =
+      `The top scores are tied across ${leaderText}. Treat this as a transition signal, not a definitive regime. ` +
+      `Confidence is based on score separation, so a tie is 0%. Use smaller positions and wait for growth, ` +
+      `inflation, policy, curve, or credit data to break the tie.`;
+    ambiguityEl.classList.add('show');
+  } else {
+    ambiguityEl.textContent = '';
+    ambiguityEl.classList.remove('show');
+  }
 
   const makeList = (id, items) => {
     const el = document.getElementById(id);
@@ -3351,7 +3457,7 @@ function runRegimeCheck() {
   };
   makeList('rc-own',   pb.own);
   makeList('rc-avoid', pb.avoid);
-  makeList('rc-watch', pb.watch);
+  makeList('rc-watch', watchItems);
 
   document.getElementById('rc-rates').textContent    = pb.rates;
   document.getElementById('rc-fx').textContent       = pb.fx;

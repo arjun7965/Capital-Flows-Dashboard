@@ -80,6 +80,30 @@ test("Regime Check renders a complete playbook", async ({ page }) => {
   await expect(page.locator("#rc-stability")).toBeVisible();
 });
 
+test("Regime Check renders tied leaders as a mixed transition", async ({ page }) => {
+  await openDashboard(page);
+  await page.getByRole("button", { name: /Regime Check/ }).click();
+
+  await page.locator("#rc-growth").selectOption("up");
+  await page.locator("#rc-inflation").selectOption("high");
+  await page.locator("#rc-fed").selectOption("hold-high");
+  await page.locator("#rc-curve").selectOption("flat");
+  await page.locator("#rc-credit").selectOption("widening");
+  await page.locator("#rc-plumbing").selectOption("calm");
+  await page.locator("#rc-check-btn").click();
+
+  await expect(page.locator("#rc-banner")).toContainText(
+    "Mixed / Transition: Overheat + Stagflation",
+  );
+  await expect(page.locator("#rc-conf")).toContainText("Separation confidence: 0%");
+  await expect(page.locator("#rc-ambiguity")).toBeVisible();
+  await expect(page.locator("#rc-ambiguity")).toContainText(
+    "not a definitive regime",
+  );
+  await expect(page.locator("#rc-own")).toContainText("If Overheat confirms:");
+  await expect(page.locator("#rc-own")).toContainText("If Stagflation confirms:");
+});
+
 for (const width of [320, 390, 768, 1280]) {
   test(`no page overflow across all tabs at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });

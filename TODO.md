@@ -54,20 +54,20 @@
 
 ## P1 - Handle Regime-Score Ties
 
-- [ ] Replace first-match tie resolution in `runRegimeCheck()`.
-- [ ] Define an explicit tie policy.
+- [x] Replace first-match tie resolution in `runRegimeCheck()`.
+- [x] Define an explicit tie policy.
   - Preferred: show a mixed/transition regime with all tied leaders.
   - Alternative: apply documented tie-breakers based on growth, inflation, credit, and curve signals.
-- [ ] Rework confidence so tied outcomes are not presented as definitive.
-- [ ] Add explanatory copy for ambiguous and transition states.
-- [ ] Add exhaustive unit coverage for all 1,280 valid input combinations.
-- [ ] Add focused tests for two-way and three-way ties.
+- [x] Rework confidence so tied outcomes are not presented as definitive.
+- [x] Add explanatory copy for ambiguous and transition states.
+- [x] Add exhaustive unit coverage for all 1,280 valid input combinations.
+- [x] Add focused tests for two-way and three-way ties.
 
 ### Acceptance Criteria
 
-- [ ] No tied score silently resolves according to JavaScript object order.
-- [ ] The displayed confidence reflects ambiguity.
-- [ ] Every valid input combination produces a deterministic, documented result.
+- [x] No tied score silently resolves according to JavaScript object order.
+- [x] The displayed confidence reflects ambiguity.
+- [x] Every valid input combination produces a deterministic, documented result.
 
 ## P2 - Runtime Test Coverage
 
