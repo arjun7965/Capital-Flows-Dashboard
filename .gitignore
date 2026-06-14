@@ -47,8 +47,9 @@ tmp/
 
 # Node (in case any tooling gets added later)
 node_modules/
-package-lock.json
 yarn.lock
+playwright-report/
+test-results/
 
 # Build outputs (none currently, just placeholder)
 dist/

@@ -1,0 +1,12 @@
+{
+  "name": "capital-flows-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test scripts/test_market_data.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}

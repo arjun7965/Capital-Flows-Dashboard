@@ -31,26 +31,26 @@
 
 ## P1 - Fix Mobile Horizontal Overflow
 
-- [ ] Add a reusable responsive wrapper for wide tables.
+- [x] Add a reusable responsive wrapper for wide tables.
   - Allow table-local horizontal scrolling instead of widening the entire page.
   - Preserve visible scroll affordance on touch devices.
-- [ ] Fix overflow in the Macro Regime transition table.
-- [ ] Fix overflow in the Equities factor/style table.
-- [ ] Stack Bitcoin tactical IF-THEN rules below 700px.
+- [x] Fix overflow in the Macro Regime transition table.
+- [x] Fix overflow in the Equities factor/style table.
+- [x] Stack Bitcoin tactical IF-THEN rules below 700px.
   - Remove or override the fixed `290px` IF-column width on mobile.
-- [ ] Fix overflow in the Consumer regime table.
-- [ ] Fix overflow in the Cheat Sheet master regime table.
-- [ ] Audit every tab at 320px, 390px, 768px, and desktop widths.
-- [ ] Add a browser smoke test asserting:
+- [x] Fix overflow in the Consumer regime table.
+- [x] Fix overflow in the Cheat Sheet master regime table.
+- [x] Audit every tab at 320px, 390px, 768px, and desktop widths.
+- [x] Add a browser smoke test asserting:
   - `document.documentElement.scrollWidth <= clientWidth`
   - All ten tabs remain reachable.
   - Tables can scroll locally where required.
 
 ### Acceptance Criteria
 
-- [ ] No page-level horizontal scrolling at 320px or wider.
-- [ ] Table content remains readable without shrinking text below the current mobile size.
-- [ ] Navigation remains horizontally scrollable and does not affect page width.
+- [x] No page-level horizontal scrolling at 320px or wider.
+- [x] Table content remains readable without shrinking text below the current mobile size.
+- [x] Navigation remains horizontally scrollable and does not affect page width.
 
 ## P1 - Handle Regime-Score Ties
 
@@ -71,12 +71,12 @@
 
 ## P2 - Runtime Test Coverage
 
-- [ ] Add Playwright smoke tests to the repository.
-- [ ] Test all ten tab switches and assert exactly one active section.
-- [ ] Test a complete Regime Check submission and its rendered playbook.
-- [ ] Capture page errors, failed requests, and non-2xx responses.
-- [ ] Run desktop and mobile viewport checks in GitHub Actions.
-- [ ] Keep the existing structural validator as a fast prerequisite.
+- [x] Add Playwright smoke tests to the repository.
+- [x] Test all ten tab switches and assert exactly one active section.
+- [x] Test a complete Regime Check submission and its rendered playbook.
+- [x] Capture page errors, failed requests, and non-2xx responses.
+- [x] Run desktop and mobile viewport checks in GitHub Actions.
+- [x] Keep the existing structural validator as a fast prerequisite.
 
 ## Deferred Product Work
 

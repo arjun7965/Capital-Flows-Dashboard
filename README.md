@@ -78,6 +78,8 @@ Capital-Flows-Dashboard/
 ├── capital_flows_dashboard_backup_v1.html  # Pre-enhancement snapshot
 ├── netlify/functions/                   # Same-origin FRED/Frankfurter adapter
 ├── scripts/                             # Validator, local server, and data tests
+├── tests/                               # Playwright browser smoke tests
+├── playwright.config.mjs                # Desktop/mobile browser test configuration
 ├── CLAUDE.md                            # Project docs, data architecture, conventions
 ├── TODO.md                              # Prioritized implementation backlog
 ├── README.md                            # This file
@@ -109,6 +111,15 @@ The same script runs automatically via:
 - **GitHub Action** ([`.github/workflows/validate.yml`](.github/workflows/validate.yml)) on every push and PR — failing checks show a red ✗ on the commit in GitHub
 - **Netlify build** ([`netlify.toml`](netlify.toml)) on every deploy — failing checks abort the deploy, previous version stays live
 
+Install the browser-test dependency and run the responsive smoke suite:
+
+```bash
+npm install
+npm run test:browser
+```
+
+The Playwright suite checks all ten tabs at 320px, 390px, 768px, and desktop widths, submits the Regime Check, and fails on page errors, failed requests, non-2xx responses, or page-level horizontal overflow.
+
 If you add a new section, new CSS variable, or new data source, the validator will likely need a small update. See the inline comments in `scripts/validate_dashboard.py`.
 
 ## Tech notes
@@ -116,7 +127,7 @@ If you add a new section, new CSS variable, or new data source, the validator wi
 - **Single dashboard HTML file** — all dashboard CSS, JavaScript, and content remain inline.
 - **Same-origin data architecture** — Netlify Function in production; dependency-free Node server locally.
 - **Browser support** — requires modern browser (Chrome / Edge / Firefox / Safari recent versions). Uses `fetch`, `Promise.allSettled`, CSS variables, `prefers-color-scheme`.
-- **Mobile** — desktop-optimized; tables and grid-4 layouts don't reflow well to phones
+- **Mobile** — responsive from 320px; wide tables scroll locally with a touch affordance, while grids and tactical rules stack on narrow screens.
 
 ---
 

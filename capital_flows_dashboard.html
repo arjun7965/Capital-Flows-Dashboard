@@ -98,10 +98,6 @@
   .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
   .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-  @media (max-width: 700px) {
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-    main { padding: 1rem; }
-  }
   .metric-card {
     background: var(--color-gray-50);
     border-radius: var(--radius-md);
@@ -129,6 +125,24 @@
   th { text-align: left; padding: 8px 10px; font-weight: 500; color: var(--color-text-muted); border-bottom: 0.5px solid var(--color-border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
   td { padding: 8px 10px; border-bottom: 0.5px solid var(--color-border); color: var(--color-text); vertical-align: top; }
   tr:last-child td { border-bottom: none; }
+  .table-scroll-shell { max-width: 100%; }
+  .table-scroll-shell--spaced { margin-bottom: 20px; }
+  .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-color: var(--color-text-hint) transparent;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll:focus-visible {
+    outline: 2px solid var(--color-purple-600);
+    outline-offset: 2px;
+  }
+  .table-scroll table { min-width: 100%; }
+  .table-scroll .cs-table { margin-bottom: 0; }
+  .table-scroll-hint { display: none; }
   .regime-quad {
     border-radius: var(--radius-md);
     padding: 1rem;
@@ -364,6 +378,65 @@
 .pill.grn  { background: rgba(63,185,80,.12); color: #3fb950; }
 .pill.blu  { background: rgba(88,166,255,.12); color: #58a6ff; }
 .pill.pur  { background: rgba(188,140,255,.12); color: #bc8cff; }
+
+@media (max-width: 700px) {
+  header { padding: 1rem; }
+  nav {
+    max-width: 100%;
+    padding: 0 0.25rem;
+    overscroll-behavior-inline: contain;
+  }
+  main { padding: 1rem; }
+  .card { padding: 1rem; }
+  .grid-2, .grid-3, .grid-4, .rc-grid, .rc-cols { grid-template-columns: minmax(0, 1fr); }
+  .regime-matrix {
+    grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 4px !important;
+  }
+  .regime-quad {
+    min-width: 0;
+    min-height: 0;
+    padding: 0.75rem;
+  }
+  .regime-quad li { overflow-wrap: anywhere; }
+  .regime-legend { flex-wrap: wrap; }
+  .flow-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .flow-row > * { min-width: 0 !important; }
+  .flow-row .badge {
+    align-self: flex-start;
+    white-space: normal;
+  }
+  #rc-result { padding: 16px; }
+  .rc-meta { flex-direction: column; }
+  .rc-meta-item { min-width: 0; }
+  .cs-rule {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .cs-rule .cs-if {
+    width: auto;
+    flex-shrink: 1;
+  }
+  .cs-rule .cs-arrow {
+    height: 16px;
+    font-size: 0;
+  }
+  .cs-rule .cs-arrow::before {
+    content: "↓";
+    font-size: 13px;
+  }
+  .table-scroll-shell.is-overflowing .table-scroll-hint {
+    display: block;
+    color: var(--color-text-hint);
+    font-size: 10px;
+    line-height: 1.2;
+    padding-top: 4px;
+    text-align: right;
+  }
+}
 </style>
 </head>
 <body>
@@ -408,7 +481,7 @@
     <!-- 4-Quadrant Grid -->
     <div class="card">
       <p class="card-title">The 4-Quadrant Regime Framework</p>
-      <div style="display: grid; grid-template-columns: 60px 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 6px; align-items: center;">
+      <div class="regime-matrix" style="display: grid; grid-template-columns: 60px 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 6px; align-items: center;">
         <!-- Top-left empty corner -->
         <div></div>
         <div class="axis-label">↑ Growth Rising</div>
@@ -480,7 +553,7 @@
           </div>
         </div>
       </div>
-      <div style="display: flex; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">
+      <div class="regime-legend" style="display: flex; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--color-text-muted);">
         <span><span class="badge badge-green">↑ green</span> = outperform / buy in this regime</span>
         <span><span class="badge badge-red">↓ red</span> = underperform / avoid in this regime</span>
       </div>
@@ -3308,6 +3381,47 @@ function showSection(id, btn) {
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
 }
+
+function prepareResponsiveTables() {
+  document.querySelectorAll('table').forEach((table, index) => {
+    if (table.closest('.table-scroll')) return;
+
+    const shell = document.createElement('div');
+    shell.className = 'table-scroll-shell';
+    if (table.classList.contains('cs-table')) {
+      shell.classList.add('table-scroll-shell--spaced');
+    }
+
+    const scroller = document.createElement('div');
+    scroller.className = 'table-scroll';
+    scroller.tabIndex = 0;
+    scroller.setAttribute('role', 'region');
+
+    const heading = table.closest('.card')?.querySelector('.card-title')?.textContent.trim()
+      || table.closest('.section')?.querySelector('.section-title')?.textContent.trim()
+      || `Dashboard data ${index + 1}`;
+    scroller.setAttribute('aria-label', `${heading} table`);
+
+    const hint = document.createElement('div');
+    hint.className = 'table-scroll-hint';
+    hint.setAttribute('aria-hidden', 'true');
+    hint.textContent = 'Swipe to view more →';
+
+    table.before(shell);
+    shell.append(scroller, hint);
+    scroller.append(table);
+
+    const updateOverflow = () => {
+      shell.classList.toggle('is-overflowing', scroller.scrollWidth > scroller.clientWidth + 1);
+    };
+    requestAnimationFrame(updateOverflow);
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(updateOverflow).observe(scroller);
+    }
+  });
+}
+
+prepareResponsiveTables();
 window.addEventListener("load", fetchLiveData);
 </script>
 </body>

@@ -7,6 +7,7 @@ name: Validate Dashboard
 #   - broken JS getElementById references
 #   - missing critical data-source URLs
 #   - file size catastrophes
+# Browser tests also cover tab navigation, Regime Check, and responsive overflow.
 
 on:
   push:
@@ -30,9 +31,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
       - name: Run structural validator
         run: python scripts/validate_dashboard.py
 
+      - name: Install test dependencies
+        run: npm ci
+
       - name: Test market-data adapter
-        run: node --test scripts/test_market_data.mjs
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test dashboard in browser
+        run: npm run test:browser
