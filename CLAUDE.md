@@ -35,19 +35,21 @@ Persistent bar above the nav showing: **10Y yield · 3M T-bill · 3M10s spread �
 ⚠️ **Only works when served over HTTP, not from file://.** To enable (Windows PowerShell):
 ```powershell
 cd "<your-folder>/Capital Flows Primers"   # or wherever the file lives
-python -m http.server 8080
-# Then open: http://localhost:8080/capital_flows_dashboard.html
+node scripts/serve_dashboard.mjs
+# Then open: http://127.0.0.1:8080/
 ```
 
 #### Data Source Architecture (current)
 
-| Field | Source | Proxy | Notes |
+| Field | Source | Delivery | Notes |
 |---|---|---|---|
-| 10Y, 3M, VIX, SOFR, EFFR | FRED (`DGS10`, `DGS3MO`, `VIXCLS`, `SOFR`, `DFF`) | codetabs (primary), allorigins (fallback) | D-1 lag |
-| DXY | ECB rates via Frankfurter API, computed using ICE formula | None — Frankfurter is CORS-native | Today's data, matches TradingView to ~0.06 |
-| SOFR−EFFR basis | Computed client-side from SOFR − DFF | — | Displayed in bp, color-thresholded |
+| 10Y, 3M, VIX, SOFR, EFFR | FRED (`DGS10`, `DGS3MO`, `VIXCLS`, `SOFR`, `DFF`) | Same-origin `/api/market-data` | Latest numeric business-day observation |
+| DXY | ECB rates via Frankfurter API, computed using ICE formula | Same-origin `/api/market-data` | Latest ECB fixing, matches TradingView to ~0.06 |
+| 3M10s, SOFR−EFFR basis | Derived server-side | Same payload | Displayed with component observation date |
 
-**Do NOT reintroduce the old sources.** Stooq dropped the UST yield tickers, Yahoo's quote API returns 401, corsproxy.io became paid-only. Working architecture established 2026-05-15.
+**Do NOT reintroduce browser-side public proxies.** codetabs began returning HTTP 400 and allorigins returned 408/CORS failures in June 2026. Stooq dropped the UST yield tickers, Yahoo's quote API returns 401, and corsproxy.io became paid-only. Production uses `netlify/functions/market-data.mjs`; local development uses `scripts/serve_dashboard.mjs`.
+
+The endpoint reports `ok`, `partial`, `stale`, or `unavailable`, preserves successful fields during partial outages, and includes an observation date for every field. Friday observations remain valid during weekends.
 
 **DXY formula** (ICE DXY, exact): `50.14348112 × EURUSD^(-0.576) × USDJPY^(0.136) × GBPUSD^(-0.119) × USDCAD^(0.091) × USDSEK^(0.042) × USDCHF^(0.036)`. Frankfurter quotes everything as "foreign per 1 USD" so EUR and GBP need inversion before applying the formula.
 
@@ -102,7 +104,7 @@ The same script runs automatically as a guard rail, but you should still run it 
 | Color palette completeness in both themes | Prevents future `-700`-style regressions |
 | JS `getElementById` references match HTML ids | Caught a stray `var(--color-orange-50, fallback)` undefined ref |
 | Nav buttons ↔ sections wired correctly | Catches unreachable tabs or orphan sections |
-| Critical data-source URLs present | Prevents accidental removal of FRED/Frankfurter/codetabs/CME wiring |
+| Critical data-source wiring present | Prevents accidental removal of the same-origin endpoint, Netlify redirect, FRED/Frankfurter sources, or CME wiring |
 
 ### Extending the validator
 

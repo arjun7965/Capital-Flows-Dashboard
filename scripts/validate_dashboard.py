@@ -30,6 +30,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 HTML = ROOT / "capital_flows_dashboard.html"
+MARKET_FUNCTION = ROOT / "netlify" / "functions" / "market-data.mjs"
+MARKET_CORE = ROOT / "netlify" / "functions" / "lib" / "market-data-core.mjs"
+NETLIFY_CONFIG = ROOT / "netlify.toml"
 
 # ─── Tracking ─────────────────────────────────────────────────────
 ISSUES: list[str] = []
@@ -54,7 +57,7 @@ print(f"\nValidating {HTML.name} ({len(content):,} bytes)\n")
 # leaves following cards as siblings of all sections, making them
 # visible on every tab.
 
-print("[1/6] Per-section <div> balance")
+print("[1/7] Per-section <div> balance")
 section_re = re.compile(r'<div id="([^"]+)" class="section(?:\s+active)?">')
 sections = [(m.start(), m.group(1)) for m in section_re.finditer(content)]
 main_close = content.find("</main>")
@@ -79,7 +82,7 @@ else:
 # Catches the -700 bug: 53 references to --color-*-700 with no
 # matching definition, causing CSS fallback to inherited color.
 
-print("\n[2/6] CSS variable references resolve")
+print("\n[2/7] CSS variable references resolve")
 all_refs = set(re.findall(r"var\(--([a-z][a-z0-9-]*)", content))
 all_defs = set(re.findall(r"--([a-z][a-z0-9-]*)\s*:", content))
 undefined = all_refs - all_defs
@@ -94,7 +97,7 @@ else:
 # light and dark theme blocks (count >= 2 for each shade).
 # Prevents future -700-style regressions.
 
-print("\n[3/6] Color palette completeness (light + dark themes)")
+print("\n[3/7] Color palette completeness (light + dark themes)")
 # Most color families use shades -50, -200, -600, -700, -800.
 # The gray family is an intentional exception: it uses -100 instead of
 # -200 (see lines 23 and 43 in the dashboard).
@@ -123,7 +126,7 @@ for fam, required_shades in family_shades.items():
 # Catches broken event handlers when an HTML id is renamed but the
 # JS still calls getElementById on the old name.
 
-print("\n[4/6] JS getElementById references resolve")
+print("\n[4/7] JS getElementById references resolve")
 js_ids = set(re.findall(r"getElementById\(\s*['\"]([^'\"]+)['\"]\s*\)", content))
 html_ids = set(re.findall(r'\sid="([^"]+)"', content))
 missing = js_ids - html_ids
@@ -135,7 +138,7 @@ else:
 
 # ─── CHECK 5: Nav buttons <-> sections wired correctly ────────────
 
-print("\n[5/6] Nav buttons <-> sections")
+print("\n[5/7] Nav buttons <-> sections")
 nav_targets = set(re.findall(r"showSection\(\s*['\"]([^'\"]+)['\"]", content))
 section_ids = {name for _, name in sections}
 nav_to_missing = nav_targets - section_ids
@@ -152,20 +155,53 @@ if not nav_to_missing and not section_no_nav:
 # ─── CHECK 6: Critical data-source URLs present ───────────────────
 # Prevents accidentally removing the live data wiring during edits.
 
-print("\n[6/6] Critical data-source URLs present")
-critical_urls = {
-    "Frankfurter (DXY)":      "api.frankfurter.dev",
-    "codetabs proxy (FRED)":  "api.codetabs.com",
-    "allorigins fallback":    "api.allorigins.win",
-    "FRED CSV endpoint":      "fred.stlouisfed.org",
-    "CME FedWatch deep-link": "cmegroup.com",
-    "Capital Flows credit":   "capitalflowsresearch.com",
-}
-for label, url in critical_urls.items():
-    if url in content:
-        ok(f"present: {label} ({url})")
+print("\n[6/7] Critical data-source wiring present")
+market_function_content = (
+    MARKET_FUNCTION.read_text(encoding="utf-8") if MARKET_FUNCTION.exists() else ""
+)
+market_core_content = (
+    MARKET_CORE.read_text(encoding="utf-8") if MARKET_CORE.exists() else ""
+)
+netlify_content = (
+    NETLIFY_CONFIG.read_text(encoding="utf-8") if NETLIFY_CONFIG.exists() else ""
+)
+
+critical_wiring = [
+    ("same-origin market-data request", "/api/market-data", content),
+    ("Netlify market-data redirect", "/.netlify/functions/market-data", netlify_content),
+    ("FRED CSV endpoint", "fred.stlouisfed.org", market_core_content),
+    ("Frankfurter DXY endpoint", "api.frankfurter.dev", market_core_content),
+    ("market-data function handler", "export const handler", market_function_content),
+    ("CME FedWatch deep-link", "cmegroup.com", content),
+    ("Capital Flows credit", "capitalflowsresearch.com", content),
+]
+for label, needle, haystack in critical_wiring:
+    if needle in haystack:
+        ok(f"present: {label}")
     else:
-        fail(f"missing: {label} ({url})")
+        fail(f"missing: {label} ({needle})")
+
+deprecated_proxies = ["api.codetabs.com", "api.allorigins.win", "corsproxy.io"]
+combined_runtime = "\n".join([content, market_function_content, market_core_content])
+for proxy in deprecated_proxies:
+    if proxy in combined_runtime:
+        fail(f"deprecated browser proxy still referenced: {proxy}")
+    else:
+        ok(f"deprecated browser proxy absent: {proxy}")
+
+print("\n[7/7] Live-data failure states present")
+required_live_states = [
+    "payload.status === 'partial'",
+    "payload.status === 'stale'",
+    "Market data unavailable",
+    "oldestObservation",
+    "loadedCount",
+]
+for marker in required_live_states:
+    if marker in content:
+        ok(f"present: {marker}")
+    else:
+        fail(f"missing live-data state marker: {marker}")
 
 # ─── Final report ─────────────────────────────────────────────────
 print()

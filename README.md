@@ -36,11 +36,11 @@ Persistent bar at the top showing:
 10Y · 3M T-bill · 3M10s spread · VIX · DXY · SOFR · SOFR−EFFR basis
 ```
 
-- **10Y, 3M, VIX, SOFR, EFFR** → [FRED](https://fred.stlouisfed.org) (St. Louis Fed) via the free `api.codetabs.com` CORS proxy
-- **DXY** → computed from ECB reference rates via [Frankfurter API](https://api.frankfurter.dev/) using the exact ICE DXY formula (matches TradingView within ~0.06)
-- **SOFR−EFFR basis** → derived client-side; color-thresholded as a funding-stress signal
+- **10Y, 3M, VIX, SOFR, EFFR** → [FRED](https://fred.stlouisfed.org) (St. Louis Fed), fetched server-side through the same-origin market-data endpoint
+- **DXY** → computed server-side from ECB reference rates via [Frankfurter API](https://api.frankfurter.dev/) using the exact ICE DXY formula (matches TradingView within ~0.06)
+- **3M10s and SOFR−EFFR basis** → derived by the market-data endpoint and color-thresholded in the browser
 
-All data updates daily (D-1 lag). The DXY field uses today's ECB fixing. No API keys, no auth.
+All data updates daily (D-1 lag). Each field displays its observation date, so weekend values are clearly identified as the latest business-day data. No API keys or auth are required.
 
 ---
 
@@ -56,15 +56,15 @@ The HTML file is fully self-contained. Clone the repo and either:
 
 **Open directly** — works for everything except the live data strip (browsers block `fetch()` from `file://`).
 
-**Run a local HTTP server** for the full live data experience:
+**Run the dependency-free local server** for the full live data experience:
 
 ```bash
 cd Capital-Flows-Dashboard
-python -m http.server 8080
-# then open http://localhost:8080/capital_flows_dashboard.html
+node scripts/serve_dashboard.mjs
+# then open http://127.0.0.1:8080/
 ```
 
-That's it. No build step, no dependencies to install.
+The local server exposes the same `/api/market-data` contract used by Netlify. A basic `python -m http.server 8080` still serves the dashboard, but live data then falls back to the deployed Netlify endpoint.
 
 ---
 
@@ -74,7 +74,10 @@ That's it. No build step, no dependencies to install.
 Capital-Flows-Dashboard/
 ├── capital_flows_dashboard.html         # The dashboard (~242KB, single file)
 ├── capital_flows_dashboard_backup_v1.html  # Pre-enhancement snapshot
+├── netlify/functions/                   # Same-origin FRED/Frankfurter adapter
+├── scripts/                             # Validator, local server, and data tests
 ├── CLAUDE.md                            # Project docs, data architecture, conventions
+├── TODO.md                              # Prioritized implementation backlog
 ├── README.md                            # This file
 ├── LICENSE                              # Apache 2.0
 └── .gitignore                           # Excludes PDFs (copyright), patch artifacts, agent state
@@ -94,7 +97,11 @@ A Python script catches the bug classes that have actually hit this project (orp
 python scripts/validate_dashboard.py
 ```
 
-Exits 0 on success, 1 on any failure. **No third-party dependencies** — Python 3.x stdlib only.
+Exits 0 on success, 1 on any failure. The market-data adapter also has dependency-free Node tests:
+
+```bash
+node --test scripts/test_market_data.mjs
+```
 
 The same script runs automatically via:
 - **GitHub Action** ([`.github/workflows/validate.yml`](.github/workflows/validate.yml)) on every push and PR — failing checks show a red ✗ on the commit in GitHub
@@ -104,8 +111,8 @@ If you add a new section, new CSS variable, or new data source, the validator wi
 
 ## Tech notes
 
-- **Single HTML file** — all CSS, JavaScript, and content inline. No build process, no dependencies, no framework.
-- **CORS-friendly data architecture** — works from any HTTP origin without backend
+- **Single dashboard HTML file** — all dashboard CSS, JavaScript, and content remain inline.
+- **Same-origin data architecture** — Netlify Function in production; dependency-free Node server locally.
 - **Browser support** — requires modern browser (Chrome / Edge / Firefox / Safari recent versions). Uses `fetch`, `Promise.allSettled`, CSS variables, `prefers-color-scheme`.
 - **Mobile** — desktop-optimized; tables and grid-4 layouts don't reflow well to phones
 
@@ -113,12 +120,9 @@ If you add a new section, new CSS variable, or new data source, the validator wi
 
 ## Privacy &amp; Data
 
-When you load the dashboard, your browser makes anonymous requests to a few public services to fetch live market data:
+When you load the hosted dashboard, your browser requests `/api/market-data` from the same Netlify origin. The serverless function then fetches public observations from **[FRED](https://fred.stlouisfed.org)** and **[Frankfurter](https://api.frankfurter.dev)**. The browser no longer calls anonymous CORS proxies.
 
-- **[FRED](https://fred.stlouisfed.org)** (St. Louis Fed) — via the public CORS proxies **[api.codetabs.com](https://api.codetabs.com)** (primary) and **[api.allorigins.win](https://api.allorigins.win)** (fallback) — for Treasury yields, VIX, and SOFR/EFFR overnight rates
-- **[Frankfurter](https://api.frankfurter.dev)** — for ECB reference FX rates used to compute the ICE DXY
-
-The dashboard itself collects no analytics, sets no cookies, and never sends any personal data to anyone. The third-party services above could in principle log your IP plus the public market-data URL requested — same as visiting any site that calls public APIs. No login or registration is involved.
+The dashboard collects no analytics, sets no cookies, and sends no personal data to the market-data providers. No login or registration is involved.
 
 ## Disclaimer
 
@@ -138,4 +142,3 @@ The dashboard code is freely usable under that license. The underlying intellect
 
 - **All content and frameworks**: [Capital Flows Research](https://www.capitalflowsresearch.com/) — read the source primers at [capitalflowsresearch.com/p/research-synthesis-direction-of-capital](https://www.capitalflowsresearch.com/p/research-synthesis-direction-of-capital)
 - **Live data**: [FRED](https://fred.stlouisfed.org) (St. Louis Fed), [Frankfurter](https://www.frankfurter.dev/) (ECB rates), [CME FedWatch](https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html)
-- **CORS proxy**: [codetabs.com](https://api.codetabs.com)

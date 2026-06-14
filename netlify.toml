@@ -4,8 +4,18 @@
 # fails (orphan content, undefined CSS vars, broken JS refs, missing data
 # sources, etc.) the deploy is aborted and the previous version stays live.
 [build]
-  command = "python scripts/validate_dashboard.py"
+  command = "python scripts/validate_dashboard.py && node --test scripts/test_market_data.mjs"
   publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/market-data"
+  to = "/.netlify/functions/market-data"
+  status = 200
+  force = true
 
 # Security headers applied to every served route. The dashboard has no user
 # input, no auth, and no eval/dynamic code, so the surface area for attack is
@@ -18,13 +28,13 @@
     # - default-src 'self'     : only same-origin resources by default
     # - script-src 'self' 'unsafe-inline' : allow inline <script> blocks (the dashboard's JS lives inline; no external scripts)
     # - style-src  'self' 'unsafe-inline' : allow inline <style> and style="" attributes (same reason)
-    # - connect-src whitelist  : only these origins may be fetched at runtime (the live data services)
+    # - connect-src 'self'     : browser market-data requests stay on the site origin
     # - img-src 'self' data:   : same-origin images plus inline data URIs (none currently, defensive)
     # - frame-src 'none'       : nothing may be embedded in an iframe on this page
     # - object-src 'none'      : no Flash/Java/etc. plugins
     # - base-uri 'self'        : prevent base-tag injection
     # - form-action 'self'     : no forms anyway, but lock it down
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.codetabs.com https://api.allorigins.win https://api.frankfurter.dev; img-src 'self' data:; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
 
     # Prevent the site being framed by other origins (clickjacking defense)
     X-Frame-Options = "DENY"

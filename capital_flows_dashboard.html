@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>Capital Flows Research — Macro Dashboard</title>
 <style>
   :root {
@@ -211,12 +212,14 @@
   z-index: 100;
 }
 .live-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto;
   align-items: center;
   gap: 6px;
   padding: 4px 14px;
   border-right: 1px solid #30363d;
 }
+.live-item.partial { background: rgba(210,153,34,0.05); }
 .live-item:last-of-type { border-right: none; }
 .live-label { color: #8b949e; font-weight: 600; letter-spacing: 0.04em; }
 .live-val { color: #e6edf3; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -224,6 +227,17 @@
 .live-val.down { color: #f85149; }
 .live-val.warn { color: #d29922; }
 .live-val.muted { color: #8b949e; font-weight: 500; }
+.live-val.loading { color: #484f58; }
+.live-val.unavailable { color: #f85149; font-weight: 600; }
+.live-val.stale { text-decoration: underline dotted #d29922; text-underline-offset: 3px; }
+.live-date {
+  grid-column: 1 / -1;
+  color: #484f58;
+  font-size: 9px;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
 #live-refresh {
   margin-left: auto;
   background: none;
@@ -237,6 +251,9 @@
 }
 #live-refresh:hover { border-color: #58a6ff; color: #58a6ff; }
 #live-ts { color: #484f58; font-size: 10px; margin-left: 8px; }
+#live-ts.ok { color: #8b949e; }
+#live-ts.partial, #live-ts.stale { color: #d29922; }
+#live-ts.unavailable { color: #f85149; }
 
 /* ── Nav separator ─────────────────────────────────────────────────── */
 .nav-sep {
@@ -357,13 +374,13 @@
 </header>
 
 <div id="live-strip">
-  <div class="live-item"><span class="live-label">10Y</span><span class="live-val" id="ls-tny">—</span></div>
-  <div class="live-item"><span class="live-label">3M</span><span class="live-val" id="ls-3m">—</span></div>
-  <div class="live-item"><span class="live-label">3M10s</span><span class="live-val" id="ls-spread">—</span></div>
-  <div class="live-item"><span class="live-label">VIX</span><span class="live-val" id="ls-vix">—</span></div>
-  <div class="live-item"><span class="live-label">DXY</span><span class="live-val" id="ls-dxy">—</span></div>
-  <div class="live-item"><span class="live-label">SOFR</span><span class="live-val" id="ls-sofr">—</span></div>
-  <div class="live-item"><span class="live-label">SOFR−EFFR</span><span class="live-val" id="ls-basis">—</span></div>
+  <div class="live-item" data-field="tny"><span class="live-label">10Y</span><span class="live-val loading" id="ls-tny">…</span><span class="live-date" id="ls-tny-date">loading</span></div>
+  <div class="live-item" data-field="irx"><span class="live-label">3M</span><span class="live-val loading" id="ls-3m">…</span><span class="live-date" id="ls-3m-date">loading</span></div>
+  <div class="live-item" data-field="spread"><span class="live-label">3M10s</span><span class="live-val loading" id="ls-spread">…</span><span class="live-date" id="ls-spread-date">loading</span></div>
+  <div class="live-item" data-field="vix"><span class="live-label">VIX</span><span class="live-val loading" id="ls-vix">…</span><span class="live-date" id="ls-vix-date">loading</span></div>
+  <div class="live-item" data-field="dxy"><span class="live-label">DXY</span><span class="live-val loading" id="ls-dxy">…</span><span class="live-date" id="ls-dxy-date">loading</span></div>
+  <div class="live-item" data-field="sofr"><span class="live-label">SOFR</span><span class="live-val loading" id="ls-sofr">…</span><span class="live-date" id="ls-sofr-date">loading</span></div>
+  <div class="live-item" data-field="basis"><span class="live-label">SOFR−EFFR</span><span class="live-val loading" id="ls-basis">…</span><span class="live-date" id="ls-basis-date">loading</span></div>
   <button id="live-refresh" onclick="fetchLiveData()">↻ Refresh</button>
   <span id="live-ts"></span>
 </div>
@@ -2915,142 +2932,195 @@
 </main>
 <script>
 
-// ── Live Data Strip (FRED via codetabs proxy, allorigins fallback) ──
-// Why this looks the way it does: the previous Stooq/Yahoo/corsproxy.io chain
-// all stopped working (Stooq dropped the UST tickers, Yahoo's quote API now
-// returns 401, corsproxy.io became paid-only). FRED is daily-EOD (1-day lag)
-// but free and reliable; codetabs is the most reliable free CORS proxy
-// currently up, with allorigins as a (flaky) backup.
+// ── Live Data Strip (same-origin market-data endpoint) ──
+// FRED and Frankfurter are fetched server-side by the Netlify Function. This
+// avoids relying on anonymous browser CORS proxies. When this file is served
+// by a basic localhost server, fall back to the deployed public endpoint.
 async function fetchLiveData() {
-  const setVal = (id, text, cls) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = text;
-    el.className = 'live-val' + (cls ? ' ' + cls : '');
-  };
   const ts = document.getElementById('live-ts');
-  if (ts) ts.textContent = 'Fetching…';
+  const refresh = document.getElementById('live-refresh');
+  const fieldIds = {
+    tny: 'ls-tny',
+    irx: 'ls-3m',
+    spread: 'ls-spread',
+    vix: 'ls-vix',
+    dxy: 'ls-dxy',
+    sofr: 'ls-sofr',
+    basis: 'ls-basis'
+  };
+  const fieldLabels = {
+    tny: '10Y',
+    irx: '3M',
+    spread: '3M10s',
+    vix: 'VIX',
+    dxy: 'DXY',
+    sofr: 'SOFR',
+    basis: 'SOFR−EFFR'
+  };
+
+  const formatDate = iso => {
+    if (!iso) return 'date unavailable';
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC'
+    });
+  };
+
+  const setStripStatus = (text, status) => {
+    if (!ts) return;
+    ts.textContent = text;
+    ts.className = status || '';
+  };
+
+  const setField = (key, text, signalClass, field, overallStatus) => {
+    const id = fieldIds[key];
+    const valueEl = document.getElementById(id);
+    const dateEl = document.getElementById(`${id}-date`);
+    const item = valueEl && valueEl.closest('.live-item');
+    if (!valueEl || !dateEl || !item) return;
+
+    const fieldStatus = field ? field.status : 'unavailable';
+    valueEl.textContent = text;
+    valueEl.className = ['live-val', signalClass, fieldStatus]
+      .filter(Boolean)
+      .join(' ');
+    dateEl.textContent = field ? formatDate(field.observedAt) : 'unavailable';
+    item.classList.toggle('partial', overallStatus === 'partial');
+    item.dataset.status = fieldStatus;
+    item.title = field
+      ? `${fieldLabels[key]}: ${field.source}, observed ${field.observedAt}${field.status === 'stale' ? ' (stale)' : ''}`
+      : `${fieldLabels[key]} is unavailable`;
+  };
+
+  const setLoadingState = () => {
+    Object.entries(fieldIds).forEach(([key, id]) => {
+      const valueEl = document.getElementById(id);
+      const dateEl = document.getElementById(`${id}-date`);
+      const item = valueEl && valueEl.closest('.live-item');
+      if (valueEl) {
+        valueEl.textContent = '…';
+        valueEl.className = 'live-val loading';
+      }
+      if (dateEl) dateEl.textContent = 'loading';
+      if (item) {
+        item.classList.remove('partial');
+        item.dataset.status = 'loading';
+        item.title = `${fieldLabels[key]} is loading`;
+      }
+    });
+    setStripStatus('Loading market data…', '');
+  };
+
+  setLoadingState();
+  if (refresh) refresh.disabled = true;
 
   if (window.location.protocol === 'file:') {
-    if (ts) ts.innerHTML = '⚠ Run <code style="background:#21262d;padding:2px 6px;border-radius:3px;font-family:monospace">python -m http.server 8080</code> in this folder, then open <code style="background:#21262d;padding:2px 6px;border-radius:3px;font-family:monospace">localhost:8080</code> for live data';
+    Object.keys(fieldIds).forEach(key => setField(key, 'N/A', '', null, 'unavailable'));
+    setStripStatus('Serve this folder over HTTP to load market data', 'unavailable');
+    if (refresh) refresh.disabled = false;
     return;
   }
-
-  const FRED = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=';
-  const PROXIES = [
-    { name: 'codetabs',   wrap: u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u),  parse: r => r.text() },
-    { name: 'allorigins', wrap: u => 'https://api.allorigins.win/get?url='       + encodeURIComponent(u),  parse: async r => (await r.json()).contents }
-  ];
 
   function timeout(ms) {
     return new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms));
   }
 
-  // Pull the most recent numeric observation from a FRED CSV. FRED uses '.'
-  // for missing values and lists weekend/holiday rows for some series.
-  function lastValue(csv) {
-    const lines = csv.trim().split(/\r?\n/);
-    for (let i = lines.length - 1; i > 0; i--) {
-      const v = lines[i].split(',')[1];
-      if (v && v !== '.' && !isNaN(parseFloat(v))) return parseFloat(v);
-    }
-    return null;
+  const endpoints = ['/api/market-data'];
+  if (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)) {
+    endpoints.push('https://capital-flows-primer.netlify.app/api/market-data');
   }
 
-  let proxyUsed = null;
-  async function fredLatest(seriesId) {
-    const upstream = FRED + seriesId;
-    let lastErr = null;
-    for (const p of PROXIES) {
-      try {
-        const res = await Promise.race([fetch(p.wrap(upstream)), timeout(12000)]);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const csv = await p.parse(res);
-        const v = lastValue(csv);
-        if (v != null) {
-          if (!proxyUsed) proxyUsed = p.name;
-          return v;
-        }
-        throw new Error('no numeric rows');
-      } catch (err) {
-        lastErr = err;
-        console.warn(`FRED ${seriesId} via ${p.name} failed:`, err.message);
+  let payload = null;
+  let lastError = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await Promise.race([fetch(endpoint), timeout(15000)]);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      payload = await response.json();
+      if (!payload || !payload.fields || !payload.status) {
+        throw new Error('invalid market-data response');
       }
+      break;
+    } catch (error) {
+      lastError = error;
+      console.warn(`Market data endpoint ${endpoint} failed:`, error.message);
     }
-    throw lastErr || new Error('all proxies failed');
   }
 
-  // 10Y, 3M, VIX come from FRED (D-1 lag is fine). DXY is computed live from
-  // Frankfurter (ECB reference rates) using the exact ICE DXY formula. We do
-  // NOT use FRED for FX because the H.10 series lags by a week — bad for DXY.
-  const fredSeries = { tny: 'DGS10', irx: 'DGS3MO', vix: 'VIXCLS', sofr: 'SOFR', effr: 'DFF' };
-  const out = {};
-
-  // Frankfurter is CORS-native, no proxy needed. Returns same-day ECB rates.
-  // Formula source: ICE Futures U.S. — Index = 50.14348112 ×
-  //   EURUSD^(-0.576) × USDJPY^(0.136) × GBPUSD^(-0.119) ×
-  //   USDCAD^(0.091)  × USDSEK^(0.042) × USDCHF^(0.036)
-  async function frankfurterDxy() {
-    const url = 'https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR,JPY,GBP,CAD,SEK,CHF';
-    const res = await Promise.race([fetch(url), timeout(8000)]);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const j = await res.json();
-    const r = j.rates;
-    if (!r || !r.EUR || !r.JPY || !r.GBP || !r.CAD || !r.SEK || !r.CHF) throw new Error('missing rates');
-    // Frankfurter quotes everything as "foreign per 1 USD"; ICE DXY uses the
-    // conventional EUR/USD and GBP/USD quotes (USD per foreign), hence invert.
-    const eurusd = 1 / r.EUR, gbpusd = 1 / r.GBP;
-    const usdjpy = r.JPY, usdcad = r.CAD, usdsek = r.SEK, usdchf = r.CHF;
-    return 50.14348112
-      * Math.pow(eurusd, -0.576)
-      * Math.pow(usdjpy,  0.136)
-      * Math.pow(gbpusd, -0.119)
-      * Math.pow(usdcad,  0.091)
-      * Math.pow(usdsek,  0.042)
-      * Math.pow(usdchf,  0.036);
-  }
-
-  const settled = await Promise.allSettled([
-    ...Object.entries(fredSeries).map(async ([k, id]) => [k, await fredLatest(id)]),
-    (async () => ['dxy', await frankfurterDxy()])()
-  ]);
-  settled.forEach(r => {
-    if (r.status === 'fulfilled' && r.value && r.value[1] != null) out[r.value[0]] = r.value[1];
-    else if (r.status === 'rejected') console.warn('field failed:', r.reason && r.reason.message);
-  });
-
-  if (Object.keys(out).length === 0) {
-    if (ts) ts.textContent = 'Live data unavailable — proxy + Frankfurter both down (try Refresh)';
+  if (!payload) {
+    Object.keys(fieldIds).forEach(key => setField(key, 'N/A', '', null, 'unavailable'));
+    setStripStatus(
+      `Market data unavailable${lastError ? ` · ${lastError.message}` : ''}`,
+      'unavailable'
+    );
+    if (refresh) refresh.disabled = false;
     return;
   }
 
-  const { tny, irx, vix, dxy } = out;
+  const fields = payload.fields;
+  const renderers = {
+    tny: field => ({
+      text: `${field.value.toFixed(2)}%`,
+      cls: field.value > 5 ? 'down' : field.value > 4.5 ? 'warn' : 'up'
+    }),
+    irx: field => ({ text: `${field.value.toFixed(2)}%`, cls: 'muted' }),
+    spread: field => ({
+      text: `${field.value >= 0 ? '+' : ''}${field.value.toFixed(2)}%`,
+      cls: field.value < 0 ? 'down' : field.value > 0.5 ? 'up' : 'warn'
+    }),
+    vix: field => ({
+      text: field.value.toFixed(1),
+      cls: field.value > 30 ? 'down' : field.value > 20 ? 'warn' : 'up'
+    }),
+    dxy: field => ({ text: field.value.toFixed(2), cls: 'muted' }),
+    sofr: field => ({ text: `${field.value.toFixed(2)}%`, cls: 'muted' }),
+    basis: field => ({
+      text: `${field.value > 0 ? '+' : ''}${Math.round(field.value)}bp`,
+      cls: field.value > 10 ? 'down' : field.value > 5 ? 'warn' : 'muted'
+    })
+  };
 
-  if (tny != null) {
-    const cls = tny > 5 ? 'down' : tny > 4.5 ? 'warn' : 'up';
-    setVal('ls-tny', tny.toFixed(2) + '%', cls);
-  }
-  if (irx != null) setVal('ls-3m', irx.toFixed(2) + '%', 'muted');  // reference, not alert
-  if (tny != null && irx != null) {
-    const spd = +(tny - irx).toFixed(2);
-    setVal('ls-spread', (spd >= 0 ? '+' : '') + spd.toFixed(2) + '%',
-      spd < 0 ? 'down' : spd > 0.5 ? 'up' : 'warn');
-  }
-  if (vix != null) setVal('ls-vix', vix.toFixed(1), vix > 30 ? 'down' : vix > 20 ? 'warn' : 'up');
-  if (dxy != null) setVal('ls-dxy', dxy.toFixed(2), 'muted');  // reference, not alert
-  // SOFR + SOFR−EFFR basis. SOFR alone is a reference (muted); the basis is the
-  // actual signal — quarter-end / funding-stress widens it positive vs EFFR.
-  const { sofr, effr } = out;
-  if (sofr != null) setVal('ls-sofr', sofr.toFixed(2) + '%', 'muted');
-  if (sofr != null && effr != null) {
-    const basisBp = Math.round((sofr - effr) * 100);  // bp
-    const sign = basisBp > 0 ? '+' : '';
-    // Positive widening = funding stress signal. Negative is usually benign.
-    const cls = basisBp > 10 ? 'down' : basisBp > 5 ? 'warn' : 'muted';
-    setVal('ls-basis', `${sign}${basisBp}bp`, cls);
+  Object.keys(fieldIds).forEach(key => {
+    const field = fields[key];
+    if (!field || !Number.isFinite(field.value)) {
+      setField(key, 'N/A', '', null, payload.status);
+      return;
+    }
+    const rendered = renderers[key](field);
+    setField(key, rendered.text, rendered.cls, field, payload.status);
+  });
+
+  const generatedTime = new Date(payload.generatedAt).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+  const dateRange = payload.oldestObservation && payload.latestObservation
+    ? payload.oldestObservation === payload.latestObservation
+      ? formatDate(payload.latestObservation)
+      : `${formatDate(payload.oldestObservation)}–${formatDate(payload.latestObservation)}`
+    : 'no observations';
+  const missingFields = Object.keys(fieldIds)
+    .filter(key => !fields[key])
+    .map(key => fieldLabels[key]);
+
+  if (payload.status === 'ok') {
+    setStripStatus(`Updated ${generatedTime} · 7/7 fields · observations ${dateRange}`, 'ok');
+  } else if (payload.status === 'stale') {
+    setStripStatus(
+      `Stale cached data · ${payload.loadedCount}/${payload.totalCount} fields · observations ${dateRange}`,
+      'stale'
+    );
+  } else if (payload.status === 'partial') {
+    setStripStatus(
+      `Partial ${payload.loadedCount}/${payload.totalCount} · unavailable: ${missingFields.join(', ')}`,
+      'partial'
+    );
+  } else {
+    setStripStatus('Market data unavailable · try Refresh', 'unavailable');
   }
 
-  if (ts) ts.textContent = `Live · ${new Date().toLocaleTimeString()} · FRED (D-1) + DXY from ECB (today)`;
+  if (refresh) refresh.disabled = false;
 }
 
 // ── Regime Check Engine ───────────────────────────────────────────────────
