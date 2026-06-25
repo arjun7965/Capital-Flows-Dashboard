@@ -6,7 +6,7 @@ import {
   calculateDxy,
   parseFredCsv,
 } from "../netlify/functions/lib/market-data-core.mjs";
-import { handler } from "../netlify/functions/market-data.mjs";
+import { createHandler } from "../netlify/functions/market-data.mjs";
 
 const FRIDAY = "2026-06-12";
 const SATURDAY = new Date("2026-06-13T17:00:00Z");
@@ -154,6 +154,7 @@ test("total upstream outage is reported as unavailable", async () => {
 
 test("the function serves stale warm-cache data during a later total outage", async () => {
   const originalFetch = globalThis.fetch;
+  const handler = createHandler({ getNow: () => SATURDAY });
   try {
     globalThis.fetch = mockFetch();
     const successfulResponse = await handler({ httpMethod: "GET" });
